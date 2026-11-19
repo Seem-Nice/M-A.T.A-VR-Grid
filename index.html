@@ -2,220 +2,457 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
-  <title>MATA VR - Holographic Grid Scanner</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+<title>MATA VR | Holographic Grid Scanner</title>
 
-  <style>
-    body { margin: 0; font-family: Arial, sans-serif; }
+<script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
 
-    #instructions {
-      position: fixed;
-      z-index: 10;
-      top: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(4, 20, 45, .9);
-      color: white;
-      padding: 10px 16px;
-      border: 1px solid #32d9ff;
-      border-radius: 10px;
-      text-align: center;
-      width: min(88%, 440px);
-      font-size: 13px;
-    }
-  </style>
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #020817;
+}
+
+#hud {
+  position: fixed;
+  z-index: 10;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(92%, 470px);
+  padding: 12px 18px;
+  text-align: center;
+  color: #eafaff;
+  background: rgba(3,15,38,.92);
+  border: 1px solid #20dfff;
+  border-radius: 12px;
+  box-shadow: 0 0 20px #008cff55;
+}
+
+#hud strong {
+  color: #48eaff;
+  letter-spacing: 2px;
+}
+
+#hud small {
+  display: block;
+  margin-top: 5px;
+  color: #b5d7e8;
+}
+
+#feedback {
+  position: fixed;
+  z-index: 11;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(90%, 400px);
+  text-align: center;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(3,15,38,.94);
+  color: white;
+  border: 1px solid #20dfff;
+  font-weight: bold;
+}
+
+</style>
 </head>
 
 <body>
-<div id="instructions">
-  <strong>MATA VR: HOLOGRAPHIC GRID SCANNER</strong><br>
-  Look around using your phone or drag the screen.
-  Face forward to begin your mission!
+
+<div id="hud">
+  <strong>MATA // INTELLIGENCE CENTRE</strong>
+  <small>HOLOGRAPHIC GRID SCANNER | AGENT TRAINING</small>
+  <small>Move your phone to explore the 360° environment</small>
 </div>
 
+<div id="feedback">MISSION: Find the Communication Device!</div>
+
 <a-scene
-  background="color: #061326"
-  renderer="colorManagement: true"
-  vr-mode-ui="enabled: true">
+  background="color: #020817"
+  renderer="antialias: true; colorManagement: true"
+  vr-mode-ui="enabled: true"
+  cursor="rayOrigin: mouse"
+  raycaster="objects: .clickable">
 
   <a-assets>
-    <a-mixin id="glowText"
-      material="color: #42eaff; emissive: #087caa; emissiveIntensity: 0.7">
+    <a-mixin id="neon"
+      material="color: #19dfff; emissive: #087dff; emissiveIntensity: 1.2">
     </a-mixin>
   </a-assets>
 
-  <!-- LIGHTING -->
-  <a-entity light="type: ambient; intensity: 1.1"></a-entity>
-  <a-entity light="type: directional; intensity: 1.5"
-            position="0 5 4"></a-entity>
+  <!-- LIGHTS -->
+  <a-entity light="type: ambient; intensity: 0.8"></a-entity>
 
-  <!-- FLOOR -->
-  <a-cylinder position="0 -1.1 0"
-    radius="5" height="0.15"
-    material="color: #102746; metalness: 0.6; roughness: 0.4">
+  <a-entity light="type: point; intensity: 2; distance: 18"
+    position="0 4 -3" color="#00bfff"></a-entity>
+
+  <a-entity light="type: point; intensity: 1.5; distance: 18"
+    position="0 3 4" color="#ffbd42"></a-entity>
+
+  <!-- FUTURISTIC FLOOR -->
+  <a-cylinder
+    position="0 -0.15 0"
+    radius="5.5"
+    height="0.2"
+    material="color: #081a34; metalness: .8; roughness: .3">
   </a-cylinder>
 
-  <!-- FRONT: LEARNING ACTIVITY -->
-  <a-entity position="0 0 -4">
+  <a-torus
+    position="0 -0.03 0"
+    rotation="-90 0 0"
+    radius="4.2"
+    radius-tubular=".025"
+    material="color: #00cfff; emissive: #007bff">
+  </a-torus>
 
-    <a-plane width="7" height="5"
-      position="0 0.5 0"
-      material="color: #071a35; opacity: 0.92">
+  <a-torus
+    position="0 -0.02 0"
+    rotation="-90 0 0"
+    radius="3.6"
+    radius-tubular=".012"
+    material="color: #ffce4a; emissive: #ff9c00">
+  </a-torus>
+
+  <!-- DECORATIVE LIGHTS -->
+  <a-sphere position="-3 2 -2" radius=".07"
+    material="color: #00eaff; emissive: #00aaff"></a-sphere>
+
+  <a-sphere position="3 2 -2" radius=".07"
+    material="color: #ffce4a; emissive: #ff9900"></a-sphere>
+
+  <a-sphere position="-3 2 2" radius=".07"
+    material="color: #00eaff; emissive: #00aaff"></a-sphere>
+
+  <a-sphere position="3 2 2" radius=".07"
+    material="color: #ffce4a; emissive: #ff9900"></a-sphere>
+
+  <!-- FRONT: MAIN ACTIVITY -->
+  <a-entity id="front" position="0 1.6 -4">
+
+    <!-- Main panel -->
+    <a-plane width="9" height="5.7"
+      material="color: #061a38; opacity: .96">
     </a-plane>
 
-    <a-text value="MATA MISSION: GRID SCANNER"
-      position="0 2.45 0.03"
+    <a-plane width="8.85" height="5.55" position="0 0 .015"
+      material="color: #0b2548; opacity: .55">
+    </a-plane>
+
+    <a-text value="MATA // GRID SCANNER"
+      position="0 2.35 .05"
       align="center" width="8"
-      color="#42eaff"></a-text>
+      color="#4deaff"></a-text>
 
-    <a-text value="Find the correct location!"
-      position="0 2.05 0.03"
+    <a-text value="OPERATION 01: LOCATE THE DEVICE"
+      position="0 1.95 .05"
       align="center" width="6"
-      color="white"></a-text>
+      color="#ffcf55"></a-text>
 
-    <!-- GRID -->
-    <a-entity id="grid" position="-1.5 -0.6 0.1">
+    <!-- GRID BACKGROUND -->
+    <a-plane position="-1.55 -.15 .06"
+      width="3.8" height="3.8"
+      material="color: #04142c; opacity: .9">
+    </a-plane>
 
-      <!-- 6x6 grid -->
-      <a-box position="1.5 1.5 0"
-        width="3.05" height="3.05" depth="0.025"
-        material="color: #062c4c; opacity: 0.45">
-      </a-box>
+    <!-- Grid group -->
+    <a-entity id="grid" position="-3.35 -1.95 .12">
 
-      <!-- Horizontal lines -->
-      <a-entity id="horizontalLines"></a-entity>
-      <!-- Vertical lines -->
-      <a-entity id="verticalLines"></a-entity>
-      <!-- Grid labels -->
-      <a-entity id="gridLabels"></a-entity>
-      <!-- Interactive objects -->
-      <a-entity id="gridObjects"></a-entity>
+      <!-- Grid glow outline -->
+      <a-plane position="1.5 1.5 -.02"
+        width="3.12" height="3.12"
+        material="color: #00bfff; opacity: .12">
+      </a-plane>
+
+      <!-- Grid lines -->
+      <a-entity id="gridLines"></a-entity>
+      <a-entity id="labels"></a-entity>
+      <a-entity id="objects"></a-entity>
 
     </a-entity>
 
-    <a-text value="Select an object to reveal its coordinate."
-      position="0 -2.15 0.05"
-      align="center" width="6"
-      color="#ffe66d"></a-text>
+    <!-- Mission info -->
+    <a-entity position="1.15 .55 .12">
+
+      <a-text value="MISSION BRIEFING"
+        position="0 1.05 0"
+        width="3.5" color="#4deaff"></a-text>
+
+      <a-text value="Find the Communication Device.\n\nLook carefully at the grid.\n\nSelect the correct coordinate."
+        position="0 .55 0"
+        width="3.5"
+        color="white"
+        line-height="55"></a-text>
+
+      <a-text value="SELECT YOUR ANSWER"
+        position="0 -.75 0"
+        width="3.5"
+        color="#ffcf55"></a-text>
+
+      <a-entity id="answers"></a-entity>
+
+      <a-text value="Tap an answer to scan!"
+        position="0 -1.65 0"
+        width="3.5"
+        color="#9bd9ee"></a-text>
+
+    </a-entity>
+
+    <a-text value="MATA TRAINING SYSTEM // AGENT LEVEL 01"
+      position="0 -2.55 .05"
+      align="center"
+      width="6"
+      color="#64b8d9"></a-text>
+
   </a-entity>
 
-  <!-- BACK: IRIS ERROR ALERT -->
-  <a-entity position="0 0 4" rotation="0 180 0">
+  <!-- BACK: IRIS ALERT -->
+  <a-entity position="0 1.6 4" rotation="0 180 0">
 
-    <a-plane width="7" height="5"
-      position="0 0.5 0"
-      material="color: #24152b; opacity: 0.95">
+    <a-plane width="9" height="5.7"
+      material="color: #15162d; opacity: .97">
     </a-plane>
 
-    <a-text value="IRIS: ERROR ALERT"
-      position="0 2.3 0.04"
-      align="center" width="7"
+    <a-plane width="8.85" height="5.55" position="0 0 .015"
+      material="color: #301b30; opacity: .4">
+    </a-plane>
+
+    <a-text value="IRIS // ERROR ALERT"
+      position="0 2.3 .05"
+      align="center"
+      width="8"
+      color="#ffca55"></a-text>
+
+    <a-text value="AGENT WARNING SYSTEM"
+      position="0 1.85 .05"
+      align="center"
+      width="6"
+      color="#f8a5a5"></a-text>
+
+    <!-- Error card 1 -->
+    <a-plane position="0 1.05 .06"
+      width="7.4" height=".8"
+      material="color: #49202d">
+    </a-plane>
+
+    <a-text value="01 // DIRECTION CONFUSION"
+      position="-3.45 1.25 .1"
+      width="6"
       color="#ffcf55"></a-text>
 
-    <a-text
-      value="ERROR 01: DIRECTION CONFUSION\nRemember LEFT, RIGHT, UP and DOWN.\n\nERROR 02: WRONG REFERENCE POINT\nAlways start from the given reference point.\n\nERROR 03: COORDINATE READING\nRead the LETTER first, then the NUMBER.\nExample: B3, not 3B."
-      position="0 0.65 0.05"
-      align="center" width="6"
-      color="white" line-height="52">
-    </a-text>
+    <a-text value="Remember LEFT, RIGHT, UP and DOWN."
+      position="-3.45 .88 .1"
+      width="6"
+      color="white"></a-text>
 
-    <a-text value="Stay alert, Agent!"
-      position="0 -1.65 0.05"
-      align="center" width="5"
+    <!-- Error card 2 -->
+    <a-plane position="0 0 .06"
+      width="7.4" height=".8"
+      material="color: #49202d">
+    </a-plane>
+
+    <a-text value="02 // WRONG REFERENCE POINT"
+      position="-3.45 .2 .1"
+      width="6"
+      color="#ffcf55"></a-text>
+
+    <a-text value="Always start from the given reference point."
+      position="-3.45 -.17 .1"
+      width="6"
+      color="white"></a-text>
+
+    <!-- Error card 3 -->
+    <a-plane position="0 -1.05 .06"
+      width="7.4" height=".8"
+      material="color: #49202d">
+    </a-plane>
+
+    <a-text value="03 // COORDINATE READING ERROR"
+      position="-3.45 -.85 .1"
+      width="6"
+      color="#ffcf55"></a-text>
+
+    <a-text value="Read the LETTER first, then the NUMBER.\nExample: B3, not 3B."
+      position="-3.45 -1.25 .1"
+      width="6"
+      color="white"></a-text>
+
+    <a-text value="IRIS: STAY ALERT, AGENT!"
+      position="0 -2.25 .1"
+      align="center"
+      width="6"
+      color="#ffcf55"></a-text>
+
+  </a-entity>
+
+  <!-- SIDE DECORATIVE PANELS -->
+  <a-entity position="-4.8 1.6 0" rotation="0 90 0">
+    <a-plane width="3" height="3"
+      material="color: #071b36; opacity: .85"></a-plane>
+    <a-text value="MATA HQ\n\nAGENT TRAINING\n\nCOORDINATE SYSTEM"
+      position="0 .6 .03"
+      align="center" width="3"
+      color="#48eaff"></a-text>
+  </a-entity>
+
+  <a-entity position="4.8 1.6 0" rotation="0 -90 0">
+    <a-plane width="3" height="3"
+      material="color: #071b36; opacity: .85"></a-plane>
+    <a-text value="SYSTEM STATUS\n\nONLINE\n\nIRIS ACTIVE"
+      position="0 .6 .03"
+      align="center" width="3"
       color="#ffcf55"></a-text>
   </a-entity>
 
   <!-- CAMERA -->
-  <a-entity position="0 0 0">
-    <a-camera look-controls="magicWindowTrackingEnabled: true"
-              wasd-controls-enabled="false">
+  <a-entity position="0 1.6 0">
+    <a-camera
+      look-controls="magicWindowTrackingEnabled: true"
+      wasd-controls-enabled="false">
+
       <a-cursor
-        color="#ffe66d"
+        color="#ffdc65"
         fuse="false"
         raycaster="objects: .clickable">
       </a-cursor>
+
     </a-camera>
   </a-entity>
 
 </a-scene>
 
 <script>
-  const grid = document.querySelector("#grid");
-  const horizontal = document.querySelector("#horizontalLines");
-  const vertical = document.querySelector("#verticalLines");
-  const labels = document.querySelector("#gridLabels");
-  const objects = document.querySelector("#gridObjects");
+const gridLines = document.querySelector("#gridLines");
+const labels = document.querySelector("#labels");
+const objects = document.querySelector("#objects");
+const answers = document.querySelector("#answers");
+const feedback = document.querySelector("#feedback");
 
-  // Draw the six rows and columns.
-  for (let i = 0; i <= 6; i++) {
-    const lineA = document.createElement("a-box");
-    lineA.setAttribute("position", `1.5 ${i * 0.5} 0.025`);
-    lineA.setAttribute("width", "3");
-    lineA.setAttribute("height", "0.018");
-    lineA.setAttribute("depth", "0.015");
-    lineA.setAttribute("color", "#35dfff");
-    horizontal.appendChild(lineA);
+const letters = ["A","B","C","D","E","F"];
 
-    const lineB = document.createElement("a-box");
-    lineB.setAttribute("position", `${i * 0.5} 1.5 0.025`);
-    lineB.setAttribute("width", "0.018");
-    lineB.setAttribute("height", "3");
-    lineB.setAttribute("depth", "0.015");
-    lineB.setAttribute("color", "#35dfff");
-    vertical.appendChild(lineB);
-  }
+// Draw grid
+for(let i=0; i<=6; i++){
 
-  // Letters A-F along the bottom.
-  "ABCDEF".split("").forEach((letter, i) => {
-    const text = document.createElement("a-text");
-    text.setAttribute("value", letter);
-    text.setAttribute("position", `${i * 0.5 + 0.25} -0.25 0.08`);
-    text.setAttribute("align", "center");
-    text.setAttribute("color", "#ffe66d");
-    text.setAttribute("width", "2");
-    labels.appendChild(text);
+  const h = document.createElement("a-box");
+  h.setAttribute("position", `1.5 ${i*.5} 0`);
+  h.setAttribute("width","3");
+  h.setAttribute("height",".025");
+  h.setAttribute("depth",".025");
+  h.setAttribute("color","#22dfff");
+  gridLines.appendChild(h);
+
+  const v = document.createElement("a-box");
+  v.setAttribute("position",`${i*.5} 1.5 0`);
+  v.setAttribute("width",".025");
+  v.setAttribute("height","3");
+  v.setAttribute("depth",".025");
+  v.setAttribute("color","#22dfff");
+  gridLines.appendChild(v);
+}
+
+// Grid labels
+letters.forEach((letter,i)=>{
+  const t = document.createElement("a-text");
+  t.setAttribute("value",letter);
+  t.setAttribute("position",`${i*.5+.25} -.23 .06`);
+  t.setAttribute("align","center");
+  t.setAttribute("width","2");
+  t.setAttribute("color","#ffdc65");
+  labels.appendChild(t);
+});
+
+for(let n=1;n<=6;n++){
+  const t = document.createElement("a-text");
+  t.setAttribute("value",n);
+  t.setAttribute("position",`-.25 ${n*.5-.25} .06`);
+  t.setAttribute("align","center");
+  t.setAttribute("width","2");
+  t.setAttribute("color","#ffdc65");
+  labels.appendChild(t);
+}
+
+// Objects
+const items = [
+  {name:"Communication Device",col:"B",row:3,color:"#ffcf55"},
+  {name:"Security Drone",col:"E",row:5,color:"#ff6688"},
+  {name:"IRIS Scanner",col:"D",row:2,color:"#65ffbf"}
+];
+
+items.forEach(item=>{
+
+  const x=letters.indexOf(item.col)*.5+.25;
+  const y=item.row*.5-.25;
+
+  const ring=document.createElement("a-torus");
+  ring.setAttribute("position",`${x} ${y} .08`);
+  ring.setAttribute("radius",".19");
+  ring.setAttribute("radius-tubular",".018");
+  ring.setAttribute("color",item.color);
+  objects.appendChild(ring);
+
+  const sphere=document.createElement("a-sphere");
+  sphere.setAttribute("position",`${x} ${y} .12`);
+  sphere.setAttribute("radius",".105");
+  sphere.setAttribute("color",item.color);
+  sphere.setAttribute("material",
+    `emissive: ${item.color}; emissiveIntensity: .8`);
+  sphere.setAttribute("class","clickable");
+
+  sphere.addEventListener("click",()=>{
+    feedback.textContent =
+      item.name+" is located at "+item.col+item.row+".";
   });
 
-  // Numbers 1-6 on the left, bottom to top.
-  for (let n = 1; n <= 6; n++) {
-    const text = document.createElement("a-text");
-    text.setAttribute("value", n);
-    text.setAttribute("position", `-0.25 ${n * 0.5 - 0.25} 0.08`);
-    text.setAttribute("align", "center");
-    text.setAttribute("color", "#ffe66d");
-    text.setAttribute("width", "2");
-    labels.appendChild(text);
-  }
+  objects.appendChild(sphere);
+});
 
-  // Sample objects and their coordinates.
-  const samples = [
-    { name: "Communication Device", col: "B", row: 3, color: "#ffcf55" },
-    { name: "Security Drone", col: "E", row: 5, color: "#ff6688" },
-    { name: "IRIS Scanner", col: "D", row: 2, color: "#70ffbd" }
-  ];
+// Multiple choice answers
+const choices=["B3","E5","D2"];
 
-  samples.forEach(item => {
-    const x = "ABCDEF".indexOf(item.col) * 0.5 + 0.25;
-    const y = item.row * 0.5 - 0.25;
+choices.forEach(choice=>{
 
-    const object = document.createElement("a-sphere");
-    object.setAttribute("position", `${x} ${y} 0.13`);
-    object.setAttribute("radius", "0.14");
-    object.setAttribute("color", item.color);
-    object.setAttribute("class", "clickable");
-    object.setAttribute("data-name", item.name);
-    object.setAttribute("data-coordinate", `${item.col}${item.row}`);
+  const group=document.createElement("a-entity");
 
-    object.addEventListener("click", () => {
-      alert(`${item.name} is located at ${item.col}${item.row}.`);
-    });
+  const panel=document.createElement("a-plane");
+  panel.setAttribute("width","1.05");
+  panel.setAttribute("height",".48");
+  panel.setAttribute("material",
+    "color: #075078; opacity: .95");
+  panel.setAttribute("class","clickable");
 
-    objects.appendChild(object);
+  const x=choices.indexOf(choice)*1.12-.57;
+  group.setAttribute("position",`${x} -.98 .08`);
+
+  const text=document.createElement("a-text");
+  text.setAttribute("value",choice);
+  text.setAttribute("align","center");
+  text.setAttribute("position","0 0 .025");
+  text.setAttribute("width","2.5");
+  text.setAttribute("color","white");
+
+  group.appendChild(panel);
+  group.appendChild(text);
+
+  panel.addEventListener("click",()=>{
+    if(choice==="B3"){
+      feedback.textContent=
+        "CORRECT! The Communication Device is at B3.";
+    }else{
+      feedback.textContent=
+        "TRY AGAIN! Check the highlighted object on the grid.";
+    }
   });
+
+  answers.appendChild(group);
+});
+
 </script>
+
 </body>
 </html>
