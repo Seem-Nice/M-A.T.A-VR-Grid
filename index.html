@@ -1,0 +1,221 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+  <title>MATA VR - Holographic Grid Scanner</title>
+
+  <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+
+    #instructions {
+      position: fixed;
+      z-index: 10;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(4, 20, 45, .9);
+      color: white;
+      padding: 10px 16px;
+      border: 1px solid #32d9ff;
+      border-radius: 10px;
+      text-align: center;
+      width: min(88%, 440px);
+      font-size: 13px;
+    }
+  </style>
+</head>
+
+<body>
+<div id="instructions">
+  <strong>MATA VR: HOLOGRAPHIC GRID SCANNER</strong><br>
+  Look around using your phone or drag the screen.
+  Face forward to begin your mission!
+</div>
+
+<a-scene
+  background="color: #061326"
+  renderer="colorManagement: true"
+  vr-mode-ui="enabled: true">
+
+  <a-assets>
+    <a-mixin id="glowText"
+      material="color: #42eaff; emissive: #087caa; emissiveIntensity: 0.7">
+    </a-mixin>
+  </a-assets>
+
+  <!-- LIGHTING -->
+  <a-entity light="type: ambient; intensity: 1.1"></a-entity>
+  <a-entity light="type: directional; intensity: 1.5"
+            position="0 5 4"></a-entity>
+
+  <!-- FLOOR -->
+  <a-cylinder position="0 -1.1 0"
+    radius="5" height="0.15"
+    material="color: #102746; metalness: 0.6; roughness: 0.4">
+  </a-cylinder>
+
+  <!-- FRONT: LEARNING ACTIVITY -->
+  <a-entity position="0 0 -4">
+
+    <a-plane width="7" height="5"
+      position="0 0.5 0"
+      material="color: #071a35; opacity: 0.92">
+    </a-plane>
+
+    <a-text value="MATA MISSION: GRID SCANNER"
+      position="0 2.45 0.03"
+      align="center" width="8"
+      color="#42eaff"></a-text>
+
+    <a-text value="Find the correct location!"
+      position="0 2.05 0.03"
+      align="center" width="6"
+      color="white"></a-text>
+
+    <!-- GRID -->
+    <a-entity id="grid" position="-1.5 -0.6 0.1">
+
+      <!-- 6x6 grid -->
+      <a-box position="1.5 1.5 0"
+        width="3.05" height="3.05" depth="0.025"
+        material="color: #062c4c; opacity: 0.45">
+      </a-box>
+
+      <!-- Horizontal lines -->
+      <a-entity id="horizontalLines"></a-entity>
+      <!-- Vertical lines -->
+      <a-entity id="verticalLines"></a-entity>
+      <!-- Grid labels -->
+      <a-entity id="gridLabels"></a-entity>
+      <!-- Interactive objects -->
+      <a-entity id="gridObjects"></a-entity>
+
+    </a-entity>
+
+    <a-text value="Select an object to reveal its coordinate."
+      position="0 -2.15 0.05"
+      align="center" width="6"
+      color="#ffe66d"></a-text>
+  </a-entity>
+
+  <!-- BACK: IRIS ERROR ALERT -->
+  <a-entity position="0 0 4" rotation="0 180 0">
+
+    <a-plane width="7" height="5"
+      position="0 0.5 0"
+      material="color: #24152b; opacity: 0.95">
+    </a-plane>
+
+    <a-text value="IRIS: ERROR ALERT"
+      position="0 2.3 0.04"
+      align="center" width="7"
+      color="#ffcf55"></a-text>
+
+    <a-text
+      value="ERROR 01: DIRECTION CONFUSION\nRemember LEFT, RIGHT, UP and DOWN.\n\nERROR 02: WRONG REFERENCE POINT\nAlways start from the given reference point.\n\nERROR 03: COORDINATE READING\nRead the LETTER first, then the NUMBER.\nExample: B3, not 3B."
+      position="0 0.65 0.05"
+      align="center" width="6"
+      color="white" line-height="52">
+    </a-text>
+
+    <a-text value="Stay alert, Agent!"
+      position="0 -1.65 0.05"
+      align="center" width="5"
+      color="#ffcf55"></a-text>
+  </a-entity>
+
+  <!-- CAMERA -->
+  <a-entity position="0 0 0">
+    <a-camera look-controls="magicWindowTrackingEnabled: true"
+              wasd-controls-enabled="false">
+      <a-cursor
+        color="#ffe66d"
+        fuse="false"
+        raycaster="objects: .clickable">
+      </a-cursor>
+    </a-camera>
+  </a-entity>
+
+</a-scene>
+
+<script>
+  const grid = document.querySelector("#grid");
+  const horizontal = document.querySelector("#horizontalLines");
+  const vertical = document.querySelector("#verticalLines");
+  const labels = document.querySelector("#gridLabels");
+  const objects = document.querySelector("#gridObjects");
+
+  // Draw the six rows and columns.
+  for (let i = 0; i <= 6; i++) {
+    const lineA = document.createElement("a-box");
+    lineA.setAttribute("position", `1.5 ${i * 0.5} 0.025`);
+    lineA.setAttribute("width", "3");
+    lineA.setAttribute("height", "0.018");
+    lineA.setAttribute("depth", "0.015");
+    lineA.setAttribute("color", "#35dfff");
+    horizontal.appendChild(lineA);
+
+    const lineB = document.createElement("a-box");
+    lineB.setAttribute("position", `${i * 0.5} 1.5 0.025`);
+    lineB.setAttribute("width", "0.018");
+    lineB.setAttribute("height", "3");
+    lineB.setAttribute("depth", "0.015");
+    lineB.setAttribute("color", "#35dfff");
+    vertical.appendChild(lineB);
+  }
+
+  // Letters A-F along the bottom.
+  "ABCDEF".split("").forEach((letter, i) => {
+    const text = document.createElement("a-text");
+    text.setAttribute("value", letter);
+    text.setAttribute("position", `${i * 0.5 + 0.25} -0.25 0.08`);
+    text.setAttribute("align", "center");
+    text.setAttribute("color", "#ffe66d");
+    text.setAttribute("width", "2");
+    labels.appendChild(text);
+  });
+
+  // Numbers 1-6 on the left, bottom to top.
+  for (let n = 1; n <= 6; n++) {
+    const text = document.createElement("a-text");
+    text.setAttribute("value", n);
+    text.setAttribute("position", `-0.25 ${n * 0.5 - 0.25} 0.08`);
+    text.setAttribute("align", "center");
+    text.setAttribute("color", "#ffe66d");
+    text.setAttribute("width", "2");
+    labels.appendChild(text);
+  }
+
+  // Sample objects and their coordinates.
+  const samples = [
+    { name: "Communication Device", col: "B", row: 3, color: "#ffcf55" },
+    { name: "Security Drone", col: "E", row: 5, color: "#ff6688" },
+    { name: "IRIS Scanner", col: "D", row: 2, color: "#70ffbd" }
+  ];
+
+  samples.forEach(item => {
+    const x = "ABCDEF".indexOf(item.col) * 0.5 + 0.25;
+    const y = item.row * 0.5 - 0.25;
+
+    const object = document.createElement("a-sphere");
+    object.setAttribute("position", `${x} ${y} 0.13`);
+    object.setAttribute("radius", "0.14");
+    object.setAttribute("color", item.color);
+    object.setAttribute("class", "clickable");
+    object.setAttribute("data-name", item.name);
+    object.setAttribute("data-coordinate", `${item.col}${item.row}`);
+
+    object.addEventListener("click", () => {
+      alert(`${item.name} is located at ${item.col}${item.row}.`);
+    });
+
+    objects.appendChild(object);
+  });
+</script>
+</body>
+</html>
