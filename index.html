@@ -2,541 +2,1028 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MATA HQ | VR Coordinate Training</title>
-<script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MATA VR - Coordinate Training</title>
+  <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
 
-<style>
-* { box-sizing: border-box; }
-body { margin:0; background:#020817; font-family:Arial,sans-serif; }
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
 
-#topbar {
-  position:fixed; z-index:10; top:10px; left:50%;
-  transform:translateX(-50%);
-  width:min(94%,600px); text-align:center;
-  color:#dffaff; background:#06182bea;
-  border:1px solid #22dfff; border-radius:12px;
-  padding:10px; box-shadow:0 0 18px #00bfff55;
-}
-#topbar strong { color:#48eaff; letter-spacing:2px; }
-#topbar small { display:block; margin-top:5px; font-size:11px; }
+    :root {
+      --cyan: #48e6ff;
+      --blue: #167bff;
+      --navy: #071426;
+      --panel: rgba(5, 18, 39, .94);
+      --white: #f2f8ff;
+      --muted: #a9bfd7;
+      --red: #ff4057;
+      --yellow: #ffd45c;
+    }
 
-#feedback {
-  position:fixed; z-index:11; bottom:12px; left:50%;
-  transform:translateX(-50%);
-  width:min(92%,480px); text-align:center;
-  padding:12px; border-radius:12px;
-  color:white; background:#06182bf2;
-  border:1px solid #22dfff;
-  font-weight:bold; font-size:13px;
-}
-</style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #06101f;
+      color: var(--white);
+      font-family: Inter, sans-serif;
+    }
+
+    a-scene {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+    }
+
+    /* Main interface */
+    #interface {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      pointer-events: auto;
+    }
+
+    .brand {
+      font-family: Orbitron, sans-serif;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: var(--cyan);
+      text-shadow: 0 0 16px #168cff;
+    }
+
+    .brand small {
+      display: block;
+      margin-top: 4px;
+      font-family: Inter, sans-serif;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: #c6d9ee;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button {
+      border: 1px solid rgba(72,230,255,.5);
+      border-radius: 9px;
+      background: rgba(10, 45, 77, .92);
+      color: white;
+      padding: 10px 13px;
+      font-weight: 700;
+      font-size: 12px;
+      cursor: pointer;
+      transition: .2s;
+    }
+
+    button:hover {
+      background: #1262a4;
+      box-shadow: 0 0 15px rgba(72,230,255,.3);
+    }
+
+    button:disabled {
+      opacity: .4;
+      cursor: not-allowed;
+    }
+
+    .direction-label {
+      align-self: center;
+      margin-top: 12px;
+      padding: 7px 17px;
+      border: 1px solid rgba(72,230,255,.4);
+      border-radius: 30px;
+      background: rgba(4,17,34,.78);
+      color: var(--cyan);
+      font-family: Orbitron, sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      pointer-events: none;
+    }
+
+    /* View panels */
+    #views {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px 0;
+      pointer-events: none;
+    }
+
+    .view {
+      display: none;
+      width: min(100%, 1050px);
+      max-height: 100%;
+      overflow-y: auto;
+      pointer-events: auto;
+      animation: appear .3s ease;
+    }
+
+    .view.active { display: block; }
+
+    @keyframes appear {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(72,230,255,.45);
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 0 30px rgba(0,120,255,.18);
+      backdrop-filter: blur(14px);
+    }
+
+    .eyebrow {
+      color: var(--cyan);
+      font-family: Orbitron, sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      font-family: Orbitron, sans-serif;
+      font-size: clamp(19px, 3vw, 28px);
+      margin-bottom: 8px;
+    }
+
+    h2 {
+      font-family: Orbitron, sans-serif;
+      font-size: 18px;
+      color: var(--cyan);
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 13px;
+    }
+
+    /* Front activity */
+    .activity-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(230px, .8fr);
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .grid-panel, .mission-panel {
+      background: rgba(7, 29, 55, .9);
+      border: 1px solid rgba(72,230,255,.28);
+      border-radius: 14px;
+      padding: 15px;
+      min-width: 0;
+    }
+
+    .grid-heading {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .grid-heading strong {
+      font-family: Orbitron, sans-serif;
+      font-size: 12px;
+      color: var(--cyan);
+    }
+
+    .grid-heading span {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .grid-wrap {
+      display: grid;
+      grid-template-columns: 25px 1fr;
+      grid-template-rows: 1fr 25px;
+      gap: 5px;
+      width: 100%;
+      max-width: 470px;
+      margin: auto;
+    }
+
+    .row-labels {
+      display: grid;
+      grid-template-rows: repeat(6, 1fr);
+      align-items: center;
+      text-align: center;
+      color: var(--yellow);
+      font-family: Orbitron, sans-serif;
+      font-size: 12px;
+    }
+
+    .column-labels {
+      grid-column: 2;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      text-align: center;
+      align-items: center;
+      color: var(--yellow);
+      font-family: Orbitron, sans-serif;
+      font-size: 12px;
+    }
+
+    #grid {
+      grid-column: 2;
+      grid-row: 1;
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      grid-template-rows: repeat(6, minmax(0, 1fr));
+      aspect-ratio: 1;
+      border: 2px solid var(--cyan);
+      border-radius: 5px;
+      overflow: hidden;
+      background: #0a2546;
+      box-shadow: 0 0 18px rgba(72,230,255,.18);
+    }
+
+    .cell {
+      min-width: 0;
+      min-height: 0;
+      border: 1px solid rgba(91,174,229,.35);
+      background: rgba(17,58,94,.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(15px, 3vw, 25px);
+      cursor: pointer;
+      transition: .15s;
+      padding: 0;
+      border-radius: 0;
+    }
+
+    .cell:hover {
+      background: rgba(36,135,190,.8);
+    }
+
+    .cell.selected-target {
+      background: rgba(255,212,92,.35);
+      outline: 2px solid var(--yellow);
+      outline-offset: -3px;
+    }
+
+    .cell .piece-icon {
+      filter: drop-shadow(0 0 5px #48e6ff);
+    }
+
+    .piece-list {
+      display: grid;
+      gap: 8px;
+      margin: 13px 0;
+    }
+
+    .piece {
+      width: 100%;
+      text-align: left;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      background: rgba(12,43,72,.9);
+      border: 1px solid rgba(72,230,255,.25);
+    }
+
+    .piece.active-piece {
+      border: 2px solid var(--yellow);
+      background: rgba(83,69,23,.45);
+    }
+
+    .piece small {
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .question {
+      padding: 14px;
+      background: rgba(15,65,100,.55);
+      border-left: 3px solid var(--yellow);
+      border-radius: 8px;
+      line-height: 1.6;
+      font-size: 14px;
+      margin-bottom: 13px;
+    }
+
+    .question strong { color: var(--yellow); }
+
+    .status {
+      min-height: 42px;
+      padding: 11px;
+      border-radius: 8px;
+      background: rgba(3,15,29,.8);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 10px 0;
+    }
+
+    .status.good {
+      color: #78ffc2;
+      border: 1px solid #32d99a;
+    }
+
+    .status.bad {
+      color: #ff9aa6;
+      border: 1px solid var(--red);
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .primary {
+      background: linear-gradient(110deg, #087bd5, #1451b8);
+      border-color: var(--cyan);
+    }
+
+    .reset {
+      border-color: rgba(255,255,255,.25);
+      background: rgba(50,65,82,.7);
+    }
+
+    /* Side notes */
+    .note-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 12px;
+    }
+
+    .note-card {
+      background: rgba(12,46,77,.8);
+      border: 1px solid rgba(72,230,255,.28);
+      border-radius: 12px;
+      padding: 15px;
+    }
+
+    .note-card h3 {
+      color: var(--yellow);
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .note-card p, .note-card li {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #d7e8f7;
+    }
+
+    .note-card ul {
+      padding-left: 18px;
+      margin-bottom: 0;
+    }
+
+    .example {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 6px;
+      background: rgba(72,230,255,.13);
+      color: var(--cyan);
+      font-weight: 800;
+      margin: 3px 0;
+    }
+
+    /* Back warning */
+    .warning-panel {
+      background: rgba(50, 5, 17, .96);
+      border: 2px solid var(--red);
+      box-shadow: 0 0 35px rgba(255,40,70,.3);
+    }
+
+    .warning-panel h1, .warning-panel h2 {
+      color: #ff5368;
+    }
+
+    .warning-panel .eyebrow {
+      color: #ff8795;
+    }
+
+    .alert-card {
+      background: rgba(105,10,27,.45);
+      border: 1px solid rgba(255,75,95,.55);
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+
+    .alert-card strong {
+      color: #ff7788;
+      display: block;
+      margin-bottom: 5px;
+      font-size: 13px;
+    }
+
+    .alert-card p {
+      color: #ffe1e5;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    footer {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      pointer-events: none;
+      padding-bottom: 4px;
+    }
+
+    .hint {
+      background: rgba(3,15,29,.8);
+      border: 1px solid rgba(72,230,255,.25);
+      color: #c7d9ec;
+      border-radius: 20px;
+      padding: 7px 12px;
+      font-size: 10px;
+    }
+
+    #motion-message {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      background: rgba(2,9,20,.92);
+    }
+
+    #motion-message .panel {
+      width: min(100%, 400px);
+      text-align: center;
+    }
+
+    @media (max-width: 700px) {
+      #interface { padding: 10px; }
+      .brand { font-size: 13px; }
+      .brand small { font-size: 8px; }
+      .top-actions button { padding: 8px; font-size: 10px; }
+      .activity-layout { grid-template-columns: 1fr; }
+      .panel { padding: 13px; }
+      .grid-panel, .mission-panel { padding: 11px; }
+      .grid-wrap { max-width: 390px; }
+      .note-grid { grid-template-columns: 1fr 1fr; }
+      .note-card { padding: 10px; }
+      .note-card p, .note-card li { font-size: 11px; }
+      .view { max-height: calc(100vh - 125px); }
+    }
+
+    @media (max-width: 390px) {
+      .note-grid { grid-template-columns: 1fr; }
+      .brand { letter-spacing: 1px; }
+      .direction-label { font-size: 9px; }
+    }
+  </style>
 </head>
 
 <body>
 
-<div id="topbar">
-  <strong>MATA // INTELLIGENCE CENTRE</strong>
-  <small>VIRTUAL COORDINATE TRAINING • AGENT LEVEL 01</small>
-  <small>Move your phone to explore | Tap a game piece, then tap a grid square</small>
-</div>
+  <!-- 360-degree VR environment -->
+  <a-scene
+    embedded
+    vr-mode-ui="enabled: false"
+    renderer="colorManagement: true"
+    background="color: #071426">
 
-<div id="feedback">Select a game piece to begin your mission.</div>
+    <a-entity light="type: ambient; intensity: 1.2"></a-entity>
+    <a-entity light="type: point; intensity: 1.8; color: #32bfff"
+              position="0 4 0"></a-entity>
 
-<a-scene
-  background="color: #030b1a"
-  renderer="antialias:true; colorManagement:true"
-  vr-mode-ui="enabled:true"
-  cursor="rayOrigin: mouse"
-  raycaster="objects: .clickable">
+    <!-- HQ floor -->
+    <a-plane rotation="-90 0 0" width="40" height="40"
+             color="#0b1b30" material="roughness: 0.8"></a-plane>
 
-  <!-- LIGHTING -->
-  <a-entity light="type:ambient; intensity:0.8"></a-entity>
-  <a-entity light="type:directional; intensity:1.5"
-            position="0 6 3" color="#b9eaff"></a-entity>
-  <a-entity light="type:point; intensity:2; distance:15"
-            position="0 4 -4" color="#00bfff"></a-entity>
-  <a-entity light="type:point; intensity:1.8; distance:15"
-            position="0 4 4" color="#ff3333"></a-entity>
+    <!-- Floor grid -->
+    <a-entity id="floor-grid"></a-entity>
 
-  <!-- MATA HQ ROOM -->
-  <a-box position="0 -0.15 0"
-    width="12" height=".3" depth="13"
-    material="color:#07182c; metalness:.7; roughness:.4">
-  </a-box>
+    <!-- Four walls -->
+    <a-box position="0 3 -8" width="18" height="6" depth=".3"
+           color="#102c4c"></a-box>
+    <a-box position="0 3 8" width="18" height="6" depth=".3"
+           color="#102c4c"></a-box>
+    <a-box position="-9 3 0" width=".3" height="6" depth="16"
+           color="#102c4c"></a-box>
+    <a-box position="9 3 0" width=".3" height="6" depth="16"
+           color="#102c4c"></a-box>
 
-  <a-box position="0 4.7 0"
-    width="12" height=".2" depth="13"
-    material="color:#08162a">
-  </a-box>
+    <!-- Futuristic wall lights -->
+    <a-box position="0 5.6 -7.7" width="12" height=".08" depth=".08"
+           color="#35dfff" emissive="#35dfff" emissive-intensity="2"></a-box>
+    <a-box position="0 5.6 7.7" width="12" height=".08" depth=".08"
+           color="#35dfff" emissive="#35dfff" emissive-intensity="2"></a-box>
+    <a-box position="-8.7 5.6 0" width=".08" height=".08" depth="11"
+           color="#35dfff" emissive="#35dfff" emissive-intensity="2"></a-box>
+    <a-box position="8.7 5.6 0" width=".08" height=".08" depth="11"
+           color="#35dfff" emissive="#35dfff" emissive-intensity="2"></a-box>
 
-  <!-- Side walls -->
-  <a-box position="-6 2.25 0" width=".2" height="4.5" depth="13"
-    material="color:#0b2440; metalness:.5"></a-box>
-  <a-box position="6 2.25 0" width=".2" height="4.5" depth="13"
-    material="color:#0b2440; metalness:.5"></a-box>
+    <!-- HQ pillars -->
+    <a-box position="-7 2.5 -6" width=".5" height="5" depth=".5"
+           color="#173e61"></a-box>
+    <a-box position="7 2.5 -6" width=".5" height="5" depth=".5"
+           color="#173e61"></a-box>
+    <a-box position="-7 2.5 6" width=".5" height="5" depth=".5"
+           color="#173e61"></a-box>
+    <a-box position="7 2.5 6" width=".5" height="5" depth=".5"
+           color="#173e61"></a-box>
 
-  <!-- Floor lighting -->
-  <a-torus position="0 .02 0" rotation="-90 0 0"
-    radius="4.5" radius-tubular=".025"
-    material="color:#00cfff; emissive:#007bff"></a-torus>
+    <!-- Decorative holographic rings -->
+    <a-torus position="0 3 -7.7" radius="2.2" radius-tubular=".025"
+             color="#35dfff" material="emissive: #35dfff; emissiveIntensity: 1.5"></a-torus>
+    <a-torus position="0 3 7.7" radius="2.2" radius-tubular=".025"
+             color="#35dfff" material="emissive: #35dfff; emissiveIntensity: 1.5"></a-torus>
 
-  <a-torus position="0 .025 0" rotation="-90 0 0"
-    radius="3.8" radius-tubular=".012"
-    material="color:#ffcf55; emissive:#ff9900"></a-torus>
-
-  <!-- Decorative HQ pillars -->
-  <a-box position="-5.5 2 -4" width=".35" height="4" depth=".35"
-    material="color:#123957; emissive:#006ca0"></a-box>
-  <a-box position="5.5 2 -4" width=".35" height="4" depth=".35"
-    material="color:#123957; emissive:#006ca0"></a-box>
-  <a-box position="-5.5 2 4" width=".35" height="4" depth=".35"
-    material="color:#123957; emissive:#006ca0"></a-box>
-  <a-box position="5.5 2 4" width=".35" height="4" depth=".35"
-    material="color:#123957; emissive:#006ca0"></a-box>
-
-  <!-- FRONT: MAIN LEARNING AREA -->
-  <a-entity position="0 1.6 -4.8">
-
-    <a-plane width="11" height="5.8"
-      material="color:#061a35; opacity:.97">
-    </a-plane>
-
-    <a-text value="MATA HOLOGRAPHIC TRAINING"
-      position="0 2.55 .05" align="center"
-      width="9" color="#46eaff"></a-text>
-
-    <a-text value="OPERATION: COORDINATE TRACKER"
-      position="0 2.18 .05" align="center"
-      width="7" color="#ffcf55"></a-text>
-
-    <!-- GRID SIDE -->
-    <a-plane position="-2.55 -.15 .04"
-      width="4.7" height="4.65"
-      material="color:#04142b; opacity:.95">
-    </a-plane>
-
-    <a-text value="HOLOGRAPHIC GRID"
-      position="-2.55 1.95 .08"
-      align="center" width="5" color="#45eaff"></a-text>
-
-    <a-entity id="grid" position="-4.3 -1.95 .12">
-      <a-plane position="1.75 1.75 -.025"
-        width="3.5" height="3.5"
-        material="color:#082747; opacity:.8">
-      </a-plane>
-      <a-entity id="cells"></a-entity>
-      <a-entity id="gridlines"></a-entity>
-      <a-entity id="labels"></a-entity>
-      <a-entity id="pieces"></a-entity>
+    <!-- Camera with mobile gyro and touch look -->
+    <a-entity id="camera-rig" position="0 1.6 0">
+      <a-camera id="camera"
+        look-controls="magicWindowTrackingEnabled: true; touchEnabled: true; mouseEnabled: true"
+        wasd-controls-enabled="false">
+      </a-camera>
     </a-entity>
+  </a-scene>
 
-    <!-- QUESTION SIDE -->
-    <a-plane position="2.45 -.05 .04"
-      width="4.65" height="4.65"
-      material="color:#0a2544; opacity:.98">
-    </a-plane>
+  <!-- HTML/CSS interface -->
+  <div id="interface">
 
-    <a-text value="MISSION BRIEFING"
-      position=".35 1.75 .09"
-      width="4" color="#48eaff"></a-text>
+    <header>
+      <div class="brand">
+        MATA // VR HQ
+        <small>COORDINATE TRAINING SYSTEM</small>
+      </div>
+      <div class="top-actions">
+        <button id="motion-button">ENABLE MOTION</button>
+        <button id="reset-button">RESET</button>
+      </div>
+    </header>
 
-    <a-text id="missionNumber"
-      value="MISSION 01 / 03"
-      position=".35 1.35 .09"
-      width="4" color="#ffcf55"></a-text>
+    <div class="direction-label" id="direction-label">FRONT // TRAINING AREA</div>
 
-    <a-text id="question"
-      value="Move the Communication Device to B3."
-      position=".35 .8 .09"
-      width="4.5" color="white" wrap-count="35"></a-text>
+    <main id="views">
 
-    <a-text value="HOW TO PLAY"
-      position=".35 -.05 .09"
-      width="4" color="#48eaff"></a-text>
+      <!-- FRONT -->
+      <section class="view active" id="front-view">
+        <div class="panel">
+          <div class="eyebrow">01 / ACTIVE TRAINING</div>
+          <h1>GRID NAVIGATION</h1>
+          <p class="subtitle">Select an agent object, then choose the correct grid square to complete the mission.</p>
 
-    <a-text value="1. Select a game piece.\n2. Select its destination square.\n3. Press CHECK ANSWER."
-      position=".35 -.42 .09"
-      width="4.3" color="#d9efff" line-height="55"></a-text>
+          <div class="activity-layout">
 
-    <a-text id="selectedInfo"
-      value="Selected: None"
-      position=".35 -1.3 .09"
-      width="4" color="#ffcf55"></a-text>
+            <div class="grid-panel">
+              <div class="grid-heading">
+                <strong>HOLOGRAPHIC GRID</strong>
+                <span>6 × 6 COORDINATES</span>
+              </div>
 
-    <!-- BUTTONS -->
-    <a-entity id="checkButton" class="clickable"
-      position="1.05 -1.85 .12">
-      <a-plane width="1.65" height=".48"
-        color="#087c58"></a-plane>
-      <a-text value="CHECK ANSWER"
-        position="0 0 .025" align="center"
-        width="2.6" color="white"></a-text>
-    </a-entity>
+              <div class="grid-wrap">
+                <div class="row-labels">
+                  <span>6</span><span>5</span><span>4</span>
+                  <span>3</span><span>2</span><span>1</span>
+                </div>
 
-    <a-entity id="nextButton" class="clickable"
-      position="2.85 -1.85 .12">
-      <a-plane width="1.4" height=".48"
-        color="#075b91"></a-plane>
-      <a-text value="NEXT MISSION"
-        position="0 0 .025" align="center"
-        width="2.3" color="white"></a-text>
-    </a-entity>
+                <div id="grid"></div>
 
-    <a-entity id="resetButton" class="clickable"
-      position="1.95 -2.42 .12">
-      <a-plane width="1.4" height=".4"
-        color="#713b19"></a-plane>
-      <a-text value="RESET"
-        position="0 0 .025" align="center"
-        width="2" color="white"></a-text>
-    </a-entity>
+                <div class="column-labels">
+                  <span>A</span><span>B</span><span>C</span>
+                  <span>D</span><span>E</span><span>F</span>
+                </div>
+              </div>
+            </div>
 
-  </a-entity>
+            <div class="mission-panel">
+              <div class="eyebrow">MISSION BRIEFING</div>
+              <h2 id="mission-title">Mission 01</h2>
 
-  <!-- LEFT SIDE: DIRECTION NOTES -->
-  <a-entity position="-5.88 2.1 0" rotation="0 90 0">
-    <a-plane width="4.8" height="3.8"
-      material="color:#082b49; opacity:.97"></a-plane>
+              <div class="question" id="question">
+                Move the Communication Device to <strong>B3</strong>.
+              </div>
 
-    <a-text value="AGENT NOTES // DIRECTIONS"
-      position="0 1.35 .04" align="center"
-      width="4.5" color="#43eaff"></a-text>
+              <p class="subtitle">Choose an object:</p>
+              <div class="piece-list" id="piece-list"></div>
 
-    <a-text value="UP   ↑   Move to the top\n\nDOWN   ↓   Move to the bottom\n\nLEFT   ←   Move to the left\n\nRIGHT   →   Move to the right\n\nNORTH   ↑   Direction to the top\n\nEAST   →   Direction to the right"
-      position="-2 -0.15 .05"
-      width="4.1" color="white" line-height="52"></a-text>
-  </a-entity>
+              <div class="status" id="status">
+                Select an object and tap a square on the grid.
+              </div>
 
-  <!-- RIGHT SIDE: COORDINATE NOTES -->
-  <a-entity position="5.88 2.1 0" rotation="0 -90 0">
-    <a-plane width="4.8" height="3.8"
-      material="color:#082b49; opacity:.97"></a-plane>
+              <div class="button-row">
+                <button class="primary" id="check-button">CHECK ANSWER</button>
+                <button id="next-button" disabled>NEXT MISSION</button>
+                <button class="reset" id="restart-button">RESTART</button>
+              </div>
+            </div>
 
-    <a-text value="AGENT NOTES // COORDINATES"
-      position="0 1.35 .04" align="center"
-      width="4.5" color="#43eaff"></a-text>
+          </div>
+        </div>
+      </section>
 
-    <a-text value="REFERENCE POINT\nThe starting location used to describe another position.\n\nREADING A GRID\nRead the LETTER first, then the NUMBER.\n\nExample: B3\n\nHorizontal = across\nVertical = up and down"
-      position="-2 .55 .05"
-      width="4.1" color="white" line-height="48"></a-text>
-  </a-entity>
+      <!-- LEFT -->
+      <section class="view" id="left-view">
+        <div class="panel">
+          <div class="eyebrow">02 / LEARNING NOTES</div>
+          <h1>DIRECTION DECODER</h1>
+          <p class="subtitle">Use direction words to describe where an object is located.</p>
 
-  <!-- BACK: RED IRIS ERROR ALERT -->
-  <a-entity position="0 2.1 6.35" rotation="0 180 0">
+          <div class="note-grid">
+            <div class="note-card">
+              <h3>Basic Directions</h3>
+              <p><strong>UP</strong> – move to the top.</p>
+              <p><strong>DOWN</strong> – move to the bottom.</p>
+              <p><strong>LEFT</strong> – move to the left.</p>
+              <p><strong>RIGHT</strong> – move to the right.</p>
+            </div>
 
-    <a-plane width="10" height="4.2"
-      material="color:#3b080e; emissive:#400000; emissiveIntensity:.3">
-    </a-plane>
+            <div class="note-card">
+              <h3>Compass Directions</h3>
+              <p><strong>NORTH</strong> – towards the top.</p>
+              <p><strong>EAST</strong> – towards the right.</p>
+              <p class="example">NORTH ↑</p>
+              <p class="example">EAST →</p>
+            </div>
 
-    <a-plane width="9.75" height="3.95" position="0 0 .025"
-      material="color:#5a1018; opacity:.85">
-    </a-plane>
+            <div class="note-card">
+              <h3>Remember!</h3>
+              <p>Look carefully at the direction before moving an object.</p>
+              <p>Count each square one at a time.</p>
+            </div>
 
-    <a-text value="!! IRIS // ERROR ALERT !!"
-      position="0 1.55 .08" align="center"
-      width="8" color="#ff3535"></a-text>
+            <div class="note-card">
+              <h3>Quick Example</h3>
+              <p>From B2, move one square to the right.</p>
+              <p>New location: <span class="example">C2</span></p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-    <a-text value="WARNING: AVOID THESE COMMON MISTAKES"
-      position="0 1.12 .08" align="center"
-      width="7" color="#ffb4b4"></a-text>
+      <!-- RIGHT -->
+      <section class="view" id="right-view">
+        <div class="panel">
+          <div class="eyebrow">03 / LEARNING NOTES</div>
+          <h1>LOCATION TRACKER</h1>
+          <p class="subtitle">Learn how to identify an object's location using a reference point and grid.</p>
 
-    <a-plane position="0 .55 .07" width="8.6" height=".62"
-      material="color:#8a151d"></a-plane>
-    <a-text value="ERROR 01: DIRECTION CONFUSION\nDo not confuse LEFT, RIGHT, UP and DOWN."
-      position="-4 .55 .12" width="7.8"
-      color="white" line-height="50"></a-text>
+          <div class="note-grid">
+            <div class="note-card">
+              <h3>What is a Reference Point?</h3>
+              <p>A reference point is a given object or place used to help us identify another object's location.</p>
+            </div>
 
-    <a-plane position="0 -.25 .07" width="8.6" height=".62"
-      material="color:#8a151d"></a-plane>
-    <a-text value="ERROR 02: WRONG REFERENCE POINT\nAlways begin at the reference point given."
-      position="-4 -.25 .12" width="7.8"
-      color="white" line-height="50"></a-text>
+            <div class="note-card">
+              <h3>Read the Grid</h3>
+              <p>Always identify the letter first, followed by the number.</p>
+              <p class="example">B4</p>
+              <p>Column B, Row 4.</p>
+            </div>
 
-    <a-plane position="0 -1.05 .07" width="8.6" height=".62"
-      material="color:#8a151d"></a-plane>
-    <a-text value="ERROR 03: WRONG COORDINATE ORDER\nRead the LETTER first, then the NUMBER. Example: B3, not 3B."
-      position="-4 -1.05 .12" width="7.8"
-      color="white" line-height="50"></a-text>
+            <div class="note-card">
+              <h3>Horizontal</h3>
+              <p>Move from left to right, or right to left.</p>
+              <p class="example">A → B → C</p>
+            </div>
 
-    <a-text value="IRIS: CHECK BEFORE YOU ANSWER!"
-      position="0 -1.75 .08" align="center"
-      width="7" color="#ff7777"></a-text>
-  </a-entity>
+            <div class="note-card">
+              <h3>Vertical</h3>
+              <p>Move from bottom to top, or top to bottom.</p>
+              <p class="example">1 ↑ 2 ↑ 3</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-  <!-- CAMERA -->
-  <a-entity position="0 1.6 0">
-    <a-camera look-controls="magicWindowTrackingEnabled:true"
-      wasd-controls-enabled="false">
-      <a-cursor color="#ffdf70" fuse="false"
-        raycaster="objects:.clickable"></a-cursor>
-    </a-camera>
-  </a-entity>
+      <!-- BACK -->
+      <section class="view" id="back-view">
+        <div class="panel warning-panel">
+          <div class="eyebrow">04 / IRIS SYSTEM ALERT</div>
+          <h1>⚠ ERROR ALERT</h1>
+          <p class="subtitle">Stop! Check these common mistakes before completing your mission.</p>
 
-</a-scene>
+          <div class="alert-card">
+            <strong>ERROR 01 — WRONG DIRECTION</strong>
+            <p>Do not confuse left with right or up with down. Check the direction before moving.</p>
+          </div>
 
-<script>
-const CELL = 0.583333;
-const LETTERS = ["A","B","C","D","E","F"];
+          <div class="alert-card">
+            <strong>ERROR 02 — WRONG REFERENCE POINT</strong>
+            <p>Always begin with the reference point given in the question. Do not choose another object.</p>
+          </div>
 
-const cells = document.querySelector("#cells");
-const lines = document.querySelector("#gridlines");
-const labels = document.querySelector("#labels");
-const piecesLayer = document.querySelector("#pieces");
-const feedback = document.querySelector("#feedback");
-const selectedInfo = document.querySelector("#selectedInfo");
-const questionText = document.querySelector("#question");
-const missionNumber = document.querySelector("#missionNumber");
+          <div class="alert-card">
+            <strong>ERROR 03 — WRONG GRID READING</strong>
+            <p>Do not reverse the order. Read the letter first, then the number. For example, B4 is not 4B.</p>
+          </div>
 
-let selectedPiece = null;
-let missionIndex = 0;
+          <div class="alert-card">
+            <strong>IRIS REMINDER</strong>
+            <p>Observe carefully. Check the letter. Check the number. Then confirm your answer.</p>
+          </div>
+        </div>
+      </section>
 
-const missions = [
-  {
-    name:"Communication Device",
-    id:"device",
-    target:"B3",
-    question:"Move the Communication Device to B3."
-  },
-  {
-    name:"Security Drone",
-    id:"drone",
-    target:"E4",
-    question:"Move the Security Drone to E4."
-  },
-  {
-    name:"IRIS Scanner",
-    id:"scanner",
-    target:"C5",
-    question:"Move the IRIS Scanner to C5."
-  }
-];
+    </main>
 
-const initialPieces = [
-  {id:"device", name:"Communication Device", col:"A", row:1, color:"#ffd34e"},
-  {id:"drone", name:"Security Drone", col:"F", row:2, color:"#ff6588"},
-  {id:"scanner", name:"IRIS Scanner", col:"D", row:6, color:"#52edc0"}
-];
+    <footer>
+      <span class="hint">FRONT: GRID MISSION</span>
+      <span class="hint">LEFT: DIRECTIONS</span>
+      <span class="hint">RIGHT: LOCATION NOTES</span>
+      <span class="hint">BACK: ERROR ALERT</span>
+    </footer>
+  </div>
 
-const positions = {};
-initialPieces.forEach(p => positions[p.id] = {col:p.col,row:p.row});
+  <!-- Motion permission prompt -->
+  <div id="motion-message">
+    <div class="panel">
+      <div class="eyebrow">MATA VR SYSTEM</div>
+      <h2>WELCOME, AGENT</h2>
+      <p class="subtitle">
+        Turn your phone to explore the MATA HQ.
+        You can also drag the screen to look around.
+      </p>
+      <button class="primary" id="start-button">ENTER TRAINING HQ</button>
+      <p class="subtitle" style="font-size:10px;margin-top:12px">
+        Motion access may be requested by your browser.
+      </p>
+    </div>
+  </div>
 
-function coordinate(col,row) {
-  return LETTERS.indexOf(col) + "," + row;
-}
+  <script>
+    // ------------------------------------
+    // 1. BUILD THE GRID
+    // ------------------------------------
+    const letters = ["A","B","C","D","E","F"];
+    const grid = document.getElementById("grid");
 
-function cellPosition(col,row) {
-  return {
-    x: LETTERS.indexOf(col) * CELL + CELL/2,
-    y: (row-1) * CELL + CELL/2
-  };
-}
+    const objects = [
+      { id: "device", name: "Communication Device", icon: "📡", start: "A1", position: "A1" },
+      { id: "drone", name: "Security Drone", icon: "🛸", start: "F2", position: "F2" },
+      { id: "scanner", name: "Holographic Scanner", icon: "🔍", start: "D6", position: "D6" },
+      { id: "core", name: "IRIS Data Core", icon: "💠", start: "B5", position: "B5" }
+    ];
 
-// Build clickable grid squares
-for(let row=1; row<=6; row++) {
-  for(let col=0; col<6; col++) {
-    const letter = LETTERS[col];
-    const square = document.createElement("a-plane");
-    const pos = cellPosition(letter,row);
+    const missions = [
+      { title: "Mission 01", object: "device", target: "B3",
+        text: "Move the Communication Device to B3." },
+      { title: "Mission 02", object: "drone", target: "E4",
+        text: "Move the Security Drone to E4." },
+      { title: "Mission 03", object: "scanner", target: "C5",
+        text: "Move the Holographic Scanner to C5." },
+      { title: "Mission 04", object: "core", target: "F3",
+        text: "Move the IRIS Data Core to F3." }
+    ];
 
-    square.setAttribute("position",
-      `${pos.x} ${pos.y} .025`);
-    square.setAttribute("width", CELL-.025);
-    square.setAttribute("height", CELL-.025);
-    square.setAttribute("material",
-      "color:#0a3557; opacity:.35; transparent:true; side:double");
-    square.setAttribute("class","clickable");
+    let currentMission = 0;
+    let selectedObject = null;
+    let completed = false;
 
-    square.addEventListener("click",()=>{
-      if(!selectedPiece) {
-        feedback.textContent = "Select a game piece first!";
+    function cellIndex(coordinate) {
+      const col = letters.indexOf(coordinate[0]);
+      const row = Number(coordinate[1]);
+      return (6 - row) * 6 + col;
+    }
+
+    function renderGrid() {
+      grid.innerHTML = "";
+
+      for (let row = 6; row >= 1; row--) {
+        for (let col = 0; col < 6; col++) {
+          const coordinate = letters[col] + row;
+          const cell = document.createElement("button");
+          cell.className = "cell";
+          cell.type = "button";
+          cell.dataset.coordinate = coordinate;
+          cell.setAttribute("aria-label", coordinate);
+
+          const found = objects.find(obj => obj.position === coordinate);
+          if (found) {
+            cell.innerHTML = '<span class="piece-icon">' + found.icon + '</span>';
+            cell.title = found.name;
+          }
+
+          cell.addEventListener("click", () => moveSelectedObject(coordinate));
+          grid.appendChild(cell);
+        }
+      }
+    }
+
+    function renderPieces() {
+      const list = document.getElementById("piece-list");
+      list.innerHTML = "";
+
+      objects.forEach(obj => {
+        const button = document.createElement("button");
+        button.className = "piece" + (selectedObject === obj.id ? " active-piece" : "");
+        button.innerHTML =
+          "<span>" + obj.icon + " " + obj.name +
+          "<br><small>Current location: " + obj.position + "</small></span>" +
+          "<span>" + (selectedObject === obj.id ? "SELECTED" : "SELECT") + "</span>";
+
+        button.addEventListener("click", () => {
+          selectedObject = obj.id;
+          renderPieces();
+          setStatus("Selected " + obj.name + ". Now tap a square on the grid.");
+        });
+
+        list.appendChild(button);
+      });
+    }
+
+    function setStatus(message, type = "") {
+      const status = document.getElementById("status");
+      status.textContent = message;
+      status.className = "status" + (type ? " " + type : "");
+    }
+
+    function moveSelectedObject(coordinate) {
+      if (!selectedObject) {
+        setStatus("Choose an object first, then tap its destination square.", "bad");
         return;
       }
-      movePiece(selectedPiece,letter,row);
-    });
 
-    cells.appendChild(square);
-  }
-}
+      if (completed) {
+        setStatus("This mission is complete. Select NEXT MISSION to continue.");
+        return;
+      }
 
-// Grid lines
-for(let i=0;i<=6;i++) {
-  const h = document.createElement("a-box");
-  h.setAttribute("position",`1.75 ${i*CELL} .05`);
-  h.setAttribute("width","3.5");
-  h.setAttribute("height",".018");
-  h.setAttribute("depth",".025");
-  h.setAttribute("color","#36dfff");
-  lines.appendChild(h);
+      const object = objects.find(obj => obj.id === selectedObject);
+      object.position = coordinate;
 
-  const v = document.createElement("a-box");
-  v.setAttribute("position",`${i*CELL} 1.75 .05`);
-  v.setAttribute("width",".018");
-  v.setAttribute("height","3.5");
-  v.setAttribute("depth",".025");
-  v.setAttribute("color","#36dfff");
-  lines.appendChild(v);
-}
+      renderGrid();
+      renderPieces();
 
-// Letter labels at bottom
-LETTERS.forEach((letter,i)=>{
-  const t = document.createElement("a-text");
-  t.setAttribute("value",letter);
-  t.setAttribute("position",`${i*CELL+CELL/2} -.2 .09`);
-  t.setAttribute("align","center");
-  t.setAttribute("width","2");
-  t.setAttribute("color","#ffdf70");
-  labels.appendChild(t);
-});
-
-// Number labels at left, bottom to top
-for(let row=1;row<=6;row++){
-  const t = document.createElement("a-text");
-  t.setAttribute("value",row);
-  t.setAttribute("position",`-.2 ${(row-1)*CELL+CELL/2} .09`);
-  t.setAttribute("align","center");
-  t.setAttribute("width","2");
-  t.setAttribute("color","#ffdf70");
-  labels.appendChild(t);
-}
-
-// Create game pieces
-function createPieces() {
-  piecesLayer.innerHTML = "";
-
-  initialPieces.forEach(piece=>{
-    const entity = document.createElement("a-entity");
-    entity.setAttribute("id","piece-"+piece.id);
-    entity.setAttribute("class","clickable");
-
-    const sphere = document.createElement("a-sphere");
-    sphere.setAttribute("radius",".17");
-    sphere.setAttribute("color",piece.color);
-    sphere.setAttribute("material",
-      `emissive:${piece.color}; emissiveIntensity:.5`);
-
-    const ring = document.createElement("a-torus");
-    ring.setAttribute("radius",".22");
-    ring.setAttribute("radius-tubular",".018");
-    ring.setAttribute("color",piece.color);
-    ring.setAttribute("rotation","0 0 0");
-
-    const label = document.createElement("a-text");
-    label.setAttribute("value",piece.id.toUpperCase());
-    label.setAttribute("position","0 .29 .02");
-    label.setAttribute("align","center");
-    label.setAttribute("width","2");
-    label.setAttribute("color","white");
-
-    entity.appendChild(ring);
-    entity.appendChild(sphere);
-    entity.appendChild(label);
-
-    entity.addEventListener("click",()=>{
-      selectPiece(piece.id);
-    });
-
-    piecesLayer.appendChild(entity);
-    placeEntity(piece.id);
-  });
-}
-
-function placeEntity(id) {
-  const p = positions[id];
-  const pos = cellPosition(p.col,p.row);
-  const entity = document.querySelector("#piece-"+id);
-
-  if(entity) {
-    entity.setAttribute("position",
-      `${pos.x} ${pos.y} .16`);
-  }
-}
-
-function selectPiece(id) {
-  selectedPiece = id;
-  const p = initialPieces.find(x=>x.id===id);
-  const pos = positions[id];
-
-  selectedInfo.setAttribute("value",
-    "Selected: "+p.name+" ("+pos.col+pos.row+")");
-
-  feedback.textContent =
-    p.name+" selected. Now tap a destination square.";
-
-  initialPieces.forEach(piece=>{
-    const e = document.querySelector("#piece-"+piece.id);
-    if(e) {
-      const ring = e.querySelector("a-torus");
-      ring.setAttribute("radius",
-        piece.id===id ? ".29" : ".22");
-      ring.setAttribute("color",
-        piece.id===id ? "#ffffff" : piece.color);
+      setStatus(object.name + " moved to " + coordinate + ". Press CHECK ANSWER.");
     }
-  });
-}
 
-function movePiece(id,col,row) {
-  positions[id] = {col,row};
-  placeEntity(id);
+    // ------------------------------------
+    // 2. MISSION SYSTEM
+    // ------------------------------------
+    function loadMission() {
+      const mission = missions[currentMission];
+      const object = objects.find(obj => obj.id === mission.object);
 
-  const p = initialPieces.find(x=>x.id===id);
-  selectedInfo.setAttribute("value",
-    "Selected: "+p.name+" ("+col+row+")");
+      object.position = object.start;
+      selectedObject = mission.object;
+      completed = false;
 
-  feedback.textContent =
-    p.name+" moved to "+col+row+". Press CHECK ANSWER.";
-}
+      document.getElementById("mission-title").textContent = mission.title;
+      document.getElementById("question").textContent = mission.text;
+      document.getElementById("next-button").disabled = true;
 
-function checkAnswer() {
-  const mission = missions[missionIndex];
-  const pos = positions[mission.id];
-  const current = pos.col+pos.row;
+      renderGrid();
+      renderPieces();
 
-  if(current===mission.target) {
-    feedback.textContent =
-      "MISSION COMPLETE! Correct location: "+mission.target+".";
-  } else {
-    feedback.textContent =
-      "NOT YET! "+mission.name+" is at "+current+
-      ". Try moving it to "+mission.target+".";
-  }
-}
+      setStatus("Move the selected object to the correct coordinate.");
+    }
 
-function nextMission() {
-  missionIndex = (missionIndex+1)%missions.length;
-  updateMission();
-}
+    document.getElementById("check-button").addEventListener("click", () => {
+      const mission = missions[currentMission];
+      const object = objects.find(obj => obj.id === mission.object);
 
-function updateMission() {
-  const mission = missions[missionIndex];
-  missionNumber.setAttribute("value",
-    "MISSION "+String(missionIndex+1).padStart(2,"0")+" / 03");
-  questionText.setAttribute("value",mission.question);
-  selectedPiece = null;
-  selectedInfo.setAttribute("value","Selected: None");
-  feedback.textContent = "New mission! Select a game piece.";
-}
+      if (object.position === mission.target) {
+        completed = true;
+        setStatus("Excellent, Agent! Correct location: " + mission.target + ". Mission completed!", "good");
+        document.getElementById("next-button").disabled = false;
+      } else {
+        setStatus("Not quite! The object is at " + object.position +
+          ". Check the letter and number again.", "bad");
+      }
+    });
 
-function resetGame() {
-  initialPieces.forEach(p=>{
-    positions[p.id] = {col:p.col,row:p.row};
-  });
-  selectedPiece = null;
-  missionIndex = 0;
-  createPieces();
-  updateMission();
-  feedback.textContent = "All game pieces returned to their starting positions.";
-}
+    document.getElementById("next-button").addEventListener("click", () => {
+      currentMission++;
 
-// Wire buttons
-document.querySelector("#checkButton").addEventListener("click",checkAnswer);
-document.querySelector("#nextButton").addEventListener("click",nextMission);
-document.querySelector("#resetButton").addEventListener("click",resetGame);
+      if (currentMission >= missions.length) {
+        document.getElementById("mission-title").textContent = "ALL MISSIONS COMPLETE";
+        document.getElementById("question").textContent =
+          "Congratulations, Agent! You have completed all coordinate missions.";
+        document.getElementById("piece-list").innerHTML = "";
+        document.getElementById("grid").innerHTML = "";
+        document.getElementById("next-button").disabled = true;
+        document.getElementById("check-button").disabled = true;
+        setStatus("MATA training successfully completed!", "good");
+        return;
+      }
 
-createPieces();
-updateMission();
-</script>
+      loadMission();
+    });
 
+    function restartGame() {
+      currentMission = 0;
+      objects.forEach(obj => obj.position = obj.start);
+      document.getElementById("check-button").disabled = false;
+      loadMission();
+    }
+
+    document.getElementById("restart-button").addEventListener("click", restartGame);
+    document.getElementById("reset-button").addEventListener("click", restartGame);
+
+    loadMission();
+
+    // ------------------------------------
+    // 3. CHANGE VIEW BASED ON CAMERA ANGLE
+    // ------------------------------------
+    const camera = document.getElementById("camera");
+    const directionLabel = document.getElementById("direction-label");
+
+    const views = {
+      front: document.getElementById("front-view"),
+      left: document.getElementById("left-view"),
+      right: document.getElementById("right-view"),
+      back: document.getElementById("back-view")
+    };
+
+    let currentView = "front";
+
+    function normalizeAngle(degrees) {
+      return ((degrees + 180) % 360 + 360) % 360 - 180;
+    }
+
+    function updateView() {
+      if (!camera || !camera.object3D) return;
+
+      const yaw = normalizeAngle(
+        THREE.MathUtils.radToDeg(camera.object3D.rotation.y)
+      );
+
+      let nextView = "front";
+
+      if (yaw >= 45 && yaw < 135) {
+        nextView = "left";
+      } else if (yaw <= -45 && yaw > -135) {
+        nextView = "right";
+      } else if (Math.abs(yaw) >= 135) {
+        nextView = "back";
+      }
+
+      if (nextView !== currentView) {
+        currentView = nextView;
+
+        Object.keys(views).forEach(key => {
+          views[key].classList.toggle("active", key === currentView);
+        });
+
+        const labels = {
+          front: "FRONT // TRAINING AREA",
+          left: "LEFT // DIRECTION NOTES",
+          right: "RIGHT // LOCATION NOTES",
+          back: "BACK // IRIS ERROR ALERT"
+        };
+
+        directionLabel.textContent = labels[currentView];
+      }
+    }
+
+    setInterval(updateView, 120);
+
+    // ------------------------------------
+    // 4. START / MOBILE MOTION PERMISSION
+    // ------------------------------------
+    async function startExperience() {
+      const overlay = document.getElementById("motion-message");
+
+      try {
+        if (
+          typeof DeviceOrientationEvent !== "undefined" &&
+          typeof DeviceOrientationEvent.requestPermission === "function"
+        ) {
+          const permission = await DeviceOrientationEvent.requestPermission();
+
+          if (permission !== "granted") {
+            alert("Motion permission was not granted. You can still drag the screen to look around.");
+          }
+        }
+      } catch (error) {
+        console.log("Motion permission unavailable:", error);
+      }
+
+      overlay.style.display = "none";
+    }
+
+    document.getElementById("start-button").addEventListener("click", startExperience);
+    document.getElementById("motion-button").addEventListener("click", startExperience);
+
+  </script>
 </body>
 </html>
