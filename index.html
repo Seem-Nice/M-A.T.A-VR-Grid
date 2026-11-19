@@ -2,1028 +2,1455 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MATA VR - Coordinate Training</title>
-  <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
-
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
-
-    :root {
-      --cyan: #48e6ff;
-      --blue: #167bff;
-      --navy: #071426;
-      --panel: rgba(5, 18, 39, .94);
-      --white: #f2f8ff;
-      --muted: #a9bfd7;
-      --red: #ff4057;
-      --yellow: #ffd45c;
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: #06101f;
-      color: var(--white);
-      font-family: Inter, sans-serif;
-    }
-
-    a-scene {
-      position: fixed;
-      inset: 0;
-      z-index: 0;
-    }
-
-    /* Main interface */
-    #interface {
-      position: fixed;
-      inset: 0;
-      z-index: 5;
-      pointer-events: none;
-      display: flex;
-      flex-direction: column;
-      padding: 16px;
-    }
-
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      pointer-events: auto;
-    }
-
-    .brand {
-      font-family: Orbitron, sans-serif;
-      font-size: 17px;
-      font-weight: 800;
-      letter-spacing: 2px;
-      color: var(--cyan);
-      text-shadow: 0 0 16px #168cff;
-    }
-
-    .brand small {
-      display: block;
-      margin-top: 4px;
-      font-family: Inter, sans-serif;
-      font-size: 9px;
-      letter-spacing: 3px;
-      color: #c6d9ee;
-    }
-
-    .top-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    button {
-      border: 1px solid rgba(72,230,255,.5);
-      border-radius: 9px;
-      background: rgba(10, 45, 77, .92);
-      color: white;
-      padding: 10px 13px;
-      font-weight: 700;
-      font-size: 12px;
-      cursor: pointer;
-      transition: .2s;
-    }
-
-    button:hover {
-      background: #1262a4;
-      box-shadow: 0 0 15px rgba(72,230,255,.3);
-    }
-
-    button:disabled {
-      opacity: .4;
-      cursor: not-allowed;
-    }
-
-    .direction-label {
-      align-self: center;
-      margin-top: 12px;
-      padding: 7px 17px;
-      border: 1px solid rgba(72,230,255,.4);
-      border-radius: 30px;
-      background: rgba(4,17,34,.78);
-      color: var(--cyan);
-      font-family: Orbitron, sans-serif;
-      font-size: 10px;
-      letter-spacing: 2px;
-      pointer-events: none;
-    }
-
-    /* View panels */
-    #views {
-      flex: 1;
-      min-height: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 12px 0;
-      pointer-events: none;
-    }
-
-    .view {
-      display: none;
-      width: min(100%, 1050px);
-      max-height: 100%;
-      overflow-y: auto;
-      pointer-events: auto;
-      animation: appear .3s ease;
-    }
-
-    .view.active { display: block; }
-
-    @keyframes appear {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .panel {
-      background: var(--panel);
-      border: 1px solid rgba(72,230,255,.45);
-      border-radius: 18px;
-      padding: 20px;
-      box-shadow: 0 0 30px rgba(0,120,255,.18);
-      backdrop-filter: blur(14px);
-    }
-
-    .eyebrow {
-      color: var(--cyan);
-      font-family: Orbitron, sans-serif;
-      font-size: 10px;
-      letter-spacing: 2px;
-      margin-bottom: 8px;
-    }
-
-    h1, h2, h3, p { margin-top: 0; }
-
-    h1 {
-      font-family: Orbitron, sans-serif;
-      font-size: clamp(19px, 3vw, 28px);
-      margin-bottom: 8px;
-    }
-
-    h2 {
-      font-family: Orbitron, sans-serif;
-      font-size: 18px;
-      color: var(--cyan);
-      margin-bottom: 12px;
-    }
-
-    .subtitle {
-      color: var(--muted);
-      line-height: 1.5;
-      font-size: 13px;
-    }
-
-    /* Front activity */
-    .activity-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.2fr) minmax(230px, .8fr);
-      gap: 18px;
-      align-items: stretch;
-    }
-
-    .grid-panel, .mission-panel {
-      background: rgba(7, 29, 55, .9);
-      border: 1px solid rgba(72,230,255,.28);
-      border-radius: 14px;
-      padding: 15px;
-      min-width: 0;
-    }
-
-    .grid-heading {
-      display: flex;
-      justify-content: space-between;
-      gap: 8px;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .grid-heading strong {
-      font-family: Orbitron, sans-serif;
-      font-size: 12px;
-      color: var(--cyan);
-    }
-
-    .grid-heading span {
-      color: var(--muted);
-      font-size: 10px;
-    }
-
-    .grid-wrap {
-      display: grid;
-      grid-template-columns: 25px 1fr;
-      grid-template-rows: 1fr 25px;
-      gap: 5px;
-      width: 100%;
-      max-width: 470px;
-      margin: auto;
-    }
-
-    .row-labels {
-      display: grid;
-      grid-template-rows: repeat(6, 1fr);
-      align-items: center;
-      text-align: center;
-      color: var(--yellow);
-      font-family: Orbitron, sans-serif;
-      font-size: 12px;
-    }
-
-    .column-labels {
-      grid-column: 2;
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      text-align: center;
-      align-items: center;
-      color: var(--yellow);
-      font-family: Orbitron, sans-serif;
-      font-size: 12px;
-    }
-
-    #grid {
-      grid-column: 2;
-      grid-row: 1;
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      grid-template-rows: repeat(6, minmax(0, 1fr));
-      aspect-ratio: 1;
-      border: 2px solid var(--cyan);
-      border-radius: 5px;
-      overflow: hidden;
-      background: #0a2546;
-      box-shadow: 0 0 18px rgba(72,230,255,.18);
-    }
-
-    .cell {
-      min-width: 0;
-      min-height: 0;
-      border: 1px solid rgba(91,174,229,.35);
-      background: rgba(17,58,94,.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: clamp(15px, 3vw, 25px);
-      cursor: pointer;
-      transition: .15s;
-      padding: 0;
-      border-radius: 0;
-    }
-
-    .cell:hover {
-      background: rgba(36,135,190,.8);
-    }
-
-    .cell.selected-target {
-      background: rgba(255,212,92,.35);
-      outline: 2px solid var(--yellow);
-      outline-offset: -3px;
-    }
-
-    .cell .piece-icon {
-      filter: drop-shadow(0 0 5px #48e6ff);
-    }
-
-    .piece-list {
-      display: grid;
-      gap: 8px;
-      margin: 13px 0;
-    }
-
-    .piece {
-      width: 100%;
-      text-align: left;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      background: rgba(12,43,72,.9);
-      border: 1px solid rgba(72,230,255,.25);
-    }
-
-    .piece.active-piece {
-      border: 2px solid var(--yellow);
-      background: rgba(83,69,23,.45);
-    }
-
-    .piece small {
-      color: var(--muted);
-      font-size: 10px;
-    }
-
-    .question {
-      padding: 14px;
-      background: rgba(15,65,100,.55);
-      border-left: 3px solid var(--yellow);
-      border-radius: 8px;
-      line-height: 1.6;
-      font-size: 14px;
-      margin-bottom: 13px;
-    }
-
-    .question strong { color: var(--yellow); }
-
-    .status {
-      min-height: 42px;
-      padding: 11px;
-      border-radius: 8px;
-      background: rgba(3,15,29,.8);
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.5;
-      margin: 10px 0;
-    }
-
-    .status.good {
-      color: #78ffc2;
-      border: 1px solid #32d99a;
-    }
-
-    .status.bad {
-      color: #ff9aa6;
-      border: 1px solid var(--red);
-    }
-
-    .button-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .primary {
-      background: linear-gradient(110deg, #087bd5, #1451b8);
-      border-color: var(--cyan);
-    }
-
-    .reset {
-      border-color: rgba(255,255,255,.25);
-      background: rgba(50,65,82,.7);
-    }
-
-    /* Side notes */
-    .note-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap: 12px;
-    }
-
-    .note-card {
-      background: rgba(12,46,77,.8);
-      border: 1px solid rgba(72,230,255,.28);
-      border-radius: 12px;
-      padding: 15px;
-    }
-
-    .note-card h3 {
-      color: var(--yellow);
-      font-size: 14px;
-      margin-bottom: 8px;
-    }
-
-    .note-card p, .note-card li {
-      font-size: 13px;
-      line-height: 1.6;
-      color: #d7e8f7;
-    }
-
-    .note-card ul {
-      padding-left: 18px;
-      margin-bottom: 0;
-    }
-
-    .example {
-      display: inline-block;
-      padding: 5px 9px;
-      border-radius: 6px;
-      background: rgba(72,230,255,.13);
-      color: var(--cyan);
-      font-weight: 800;
-      margin: 3px 0;
-    }
-
-    /* Back warning */
-    .warning-panel {
-      background: rgba(50, 5, 17, .96);
-      border: 2px solid var(--red);
-      box-shadow: 0 0 35px rgba(255,40,70,.3);
-    }
-
-    .warning-panel h1, .warning-panel h2 {
-      color: #ff5368;
-    }
-
-    .warning-panel .eyebrow {
-      color: #ff8795;
-    }
-
-    .alert-card {
-      background: rgba(105,10,27,.45);
-      border: 1px solid rgba(255,75,95,.55);
-      border-radius: 10px;
-      padding: 12px;
-      margin-top: 10px;
-    }
-
-    .alert-card strong {
-      color: #ff7788;
-      display: block;
-      margin-bottom: 5px;
-      font-size: 13px;
-    }
-
-    .alert-card p {
-      color: #ffe1e5;
-      font-size: 12px;
-      line-height: 1.5;
-      margin: 0;
-    }
-
-    footer {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      pointer-events: none;
-      padding-bottom: 4px;
-    }
-
-    .hint {
-      background: rgba(3,15,29,.8);
-      border: 1px solid rgba(72,230,255,.25);
-      color: #c7d9ec;
-      border-radius: 20px;
-      padding: 7px 12px;
-      font-size: 10px;
-    }
-
-    #motion-message {
-      position: fixed;
-      inset: 0;
-      z-index: 20;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-      background: rgba(2,9,20,.92);
-    }
-
-    #motion-message .panel {
-      width: min(100%, 400px);
-      text-align: center;
-    }
-
-    @media (max-width: 700px) {
-      #interface { padding: 10px; }
-      .brand { font-size: 13px; }
-      .brand small { font-size: 8px; }
-      .top-actions button { padding: 8px; font-size: 10px; }
-      .activity-layout { grid-template-columns: 1fr; }
-      .panel { padding: 13px; }
-      .grid-panel, .mission-panel { padding: 11px; }
-      .grid-wrap { max-width: 390px; }
-      .note-grid { grid-template-columns: 1fr 1fr; }
-      .note-card { padding: 10px; }
-      .note-card p, .note-card li { font-size: 11px; }
-      .view { max-height: calc(100vh - 125px); }
-    }
-
-    @media (max-width: 390px) {
-      .note-grid { grid-template-columns: 1fr; }
-      .brand { letter-spacing: 1px; }
-      .direction-label { font-size: 9px; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MATA VR - Elite Training System</title>
+
+<script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --cyan:#42e8ff;
+  --blue:#1684ff;
+  --navy:#06172b;
+  --panel:rgba(5,20,42,.96);
+  --white:#f3f8ff;
+  --muted:#a9c1d9;
+  --yellow:#ffd45c;
+  --red:#ff4057;
+  --green:#45e6a4;
+}
+
+* { box-sizing:border-box; }
+
+body {
+  margin:0;
+  background:#06101f;
+  color:var(--white);
+  font-family:Inter,sans-serif;
+  overflow:hidden;
+}
+
+a-scene {
+  position:fixed;
+  inset:0;
+  z-index:0;
+}
+
+#interface {
+  position:fixed;
+  inset:0;
+  z-index:5;
+  display:flex;
+  flex-direction:column;
+  padding:15px;
+  pointer-events:none;
+}
+
+header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  pointer-events:auto;
+}
+
+.brand {
+  color:var(--cyan);
+  font-family:Orbitron,sans-serif;
+  font-size:17px;
+  font-weight:800;
+  letter-spacing:2px;
+  text-shadow:0 0 15px #168cff;
+}
+
+.brand small {
+  display:block;
+  margin-top:4px;
+  color:#c5d9ee;
+  font:9px Inter,sans-serif;
+  letter-spacing:3px;
+}
+
+.top-actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+
+button {
+  border:1px solid rgba(66,232,255,.5);
+  border-radius:9px;
+  padding:10px 13px;
+  background:rgba(10,48,82,.95);
+  color:white;
+  font-weight:700;
+  font-size:11px;
+  cursor:pointer;
+  transition:.2s;
+}
+
+button:hover {
+  background:#1264a4;
+  box-shadow:0 0 14px rgba(66,232,255,.3);
+}
+
+button:disabled {
+  opacity:.4;
+  cursor:not-allowed;
+}
+
+.direction-label {
+  align-self:center;
+  margin:10px 0;
+  padding:7px 17px;
+  border:1px solid rgba(66,232,255,.45);
+  border-radius:30px;
+  background:rgba(4,17,34,.85);
+  color:var(--cyan);
+  font:10px Orbitron,sans-serif;
+  letter-spacing:2px;
+}
+
+#views {
+  flex:1;
+  min-height:0;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:5px 0;
+  pointer-events:none;
+}
+
+.view {
+  display:none;
+  width:min(100%,1050px);
+  max-height:100%;
+  overflow-y:auto;
+  pointer-events:auto;
+  animation:appear .25s ease;
+}
+
+.view.active { display:block; }
+
+@keyframes appear {
+  from {opacity:0;transform:translateY(8px)}
+  to {opacity:1;transform:translateY(0)}
+}
+
+.panel {
+  padding:19px;
+  border:1px solid rgba(66,232,255,.45);
+  border-radius:18px;
+  background:var(--panel);
+  box-shadow:0 0 30px rgba(0,120,255,.2);
+  backdrop-filter:blur(14px);
+}
+
+.eyebrow {
+  margin-bottom:8px;
+  color:var(--cyan);
+  font:10px Orbitron,sans-serif;
+  letter-spacing:2px;
+}
+
+h1,h2,h3,p { margin-top:0; }
+
+h1 {
+  margin-bottom:8px;
+  font:800 clamp(19px,3vw,27px) Orbitron,sans-serif;
+}
+
+h2 {
+  color:var(--cyan);
+  font:700 17px Orbitron,sans-serif;
+}
+
+.subtitle {
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.6;
+}
+
+.stats {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:12px 0;
+}
+
+.stat {
+  flex:1;
+  min-width:90px;
+  padding:9px;
+  border:1px solid rgba(66,232,255,.22);
+  border-radius:9px;
+  background:rgba(12,45,75,.75);
+}
+
+.stat span {
+  display:block;
+  color:var(--muted);
+  font-size:9px;
+  letter-spacing:1px;
+}
+
+.stat strong {
+  display:block;
+  margin-top:4px;
+  color:var(--yellow);
+  font:700 17px Orbitron,sans-serif;
+}
+
+.progress-track {
+  height:7px;
+  overflow:hidden;
+  border-radius:10px;
+  background:#172d45;
+  margin:10px 0 15px;
+}
+
+#progress-bar {
+  width:0;
+  height:100%;
+  background:linear-gradient(90deg,#1684ff,#42e8ff);
+  transition:width .3s;
+}
+
+.activity-layout {
+  display:grid;
+  grid-template-columns:minmax(0,1.1fr) minmax(230px,.9fr);
+  gap:15px;
+}
+
+.grid-panel,.mission-panel {
+  min-width:0;
+  padding:13px;
+  border:1px solid rgba(66,232,255,.25);
+  border-radius:13px;
+  background:rgba(7,29,55,.92);
+}
+
+.grid-heading {
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:12px;
+  align-items:center;
+}
+
+.grid-heading strong {
+  color:var(--cyan);
+  font:11px Orbitron,sans-serif;
+}
+
+.grid-heading span {
+  color:var(--muted);
+  font-size:9px;
+}
+
+.grid-wrap {
+  display:grid;
+  grid-template-columns:24px 1fr;
+  grid-template-rows:1fr 24px;
+  gap:5px;
+  width:100%;
+  max-width:440px;
+  margin:auto;
+}
+
+.row-labels {
+  display:grid;
+  grid-template-rows:repeat(6,1fr);
+  align-items:center;
+  text-align:center;
+  color:var(--yellow);
+  font:12px Orbitron,sans-serif;
+}
+
+.column-labels {
+  grid-column:2;
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  text-align:center;
+  align-items:center;
+  color:var(--yellow);
+  font:12px Orbitron,sans-serif;
+}
+
+#grid {
+  grid-column:2;
+  grid-row:1;
+  display:grid;
+  grid-template-columns:repeat(6,minmax(0,1fr));
+  grid-template-rows:repeat(6,minmax(0,1fr));
+  aspect-ratio:1;
+  overflow:hidden;
+  border:2px solid var(--cyan);
+  border-radius:5px;
+  background:#0a2546;
+  box-shadow:0 0 18px rgba(66,232,255,.2);
+}
+
+.cell {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-width:0;
+  min-height:0;
+  padding:0;
+  border:1px solid rgba(91,174,229,.35);
+  border-radius:0;
+  background:rgba(17,58,94,.75);
+  font-size:clamp(15px,3vw,25px);
+}
+
+.cell:hover { background:#17669b; }
+
+.cell.chosen {
+  background:rgba(255,212,92,.35);
+  outline:2px solid var(--yellow);
+  outline-offset:-3px;
+}
+
+.cell.target-correct {
+  background:rgba(69,230,164,.3);
+}
+
+.cell .piece-icon {
+  filter:drop-shadow(0 0 5px #42e8ff);
+}
+
+.piece-list {
+  display:grid;
+  gap:7px;
+  margin:10px 0;
+}
+
+.piece {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  gap:8px;
+  text-align:left;
+  background:rgba(12,43,72,.9);
+  border:1px solid rgba(66,232,255,.25);
+}
+
+.piece.active-piece {
+  border:2px solid var(--yellow);
+  background:rgba(83,69,23,.45);
+}
+
+.piece small {
+  color:var(--muted);
+  font-size:9px;
+}
+
+.question {
+  margin:10px 0;
+  padding:13px;
+  border-left:3px solid var(--yellow);
+  border-radius:8px;
+  background:rgba(15,65,100,.55);
+  font-size:13px;
+  line-height:1.6;
+}
+
+.question strong { color:var(--yellow); }
+
+.status {
+  min-height:43px;
+  margin:10px 0;
+  padding:10px;
+  border-radius:8px;
+  background:rgba(3,15,29,.8);
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.5;
+}
+
+.status.good {
+  color:#78ffc2;
+  border:1px solid var(--green);
+}
+
+.status.bad {
+  color:#ff9aa6;
+  border:1px solid var(--red);
+}
+
+.button-row {
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+
+.primary {
+  background:linear-gradient(110deg,#087bd5,#1451b8);
+  border-color:var(--cyan);
+}
+
+.gold {
+  color:#18253a;
+  background:var(--yellow);
+  border-color:var(--yellow);
+}
+
+.secondary { background:#263e59; }
+
+#iris-box {
+  display:none;
+  margin-top:12px;
+  padding:13px;
+  border:1px solid rgba(66,232,255,.5);
+  border-radius:12px;
+  background:linear-gradient(120deg,rgba(8,55,91,.95),rgba(15,28,66,.95));
+}
+
+#iris-box.open { display:block; }
+
+.iris-heading {
+  display:flex;
+  gap:10px;
+  align-items:center;
+  margin-bottom:8px;
+  color:var(--cyan);
+  font:700 12px Orbitron,sans-serif;
+}
+
+.iris-avatar {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:35px;
+  height:35px;
+  border-radius:50%;
+  background:#0b4975;
+  border:1px solid var(--cyan);
+  font-size:20px;
+}
+
+#iris-message {
+  color:#d8edff;
+  font-size:11px;
+  line-height:1.6;
+  margin:0;
+}
+
+.note-grid {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+.note-card {
+  padding:14px;
+  border:1px solid rgba(66,232,255,.25);
+  border-radius:12px;
+  background:rgba(12,46,77,.85);
+}
+
+.note-card h3 {
+  margin-bottom:8px;
+  color:var(--yellow);
+  font-size:13px;
+}
+
+.note-card p,.note-card li {
+  color:#d7e8f7;
+  font-size:12px;
+  line-height:1.6;
+}
+
+.note-card ul {
+  padding-left:18px;
+  margin-bottom:0;
+}
+
+.example {
+  display:inline-block;
+  padding:5px 9px;
+  border-radius:6px;
+  background:rgba(66,232,255,.13);
+  color:var(--cyan);
+  font-weight:800;
+}
+
+.warning-panel {
+  border:2px solid var(--red);
+  background:rgba(50,5,17,.96);
+  box-shadow:0 0 35px rgba(255,40,70,.3);
+}
+
+.warning-panel h1,.warning-panel h2 { color:#ff5368; }
+
+.warning-panel .eyebrow { color:#ff8795; }
+
+.alert-card {
+  margin-top:10px;
+  padding:12px;
+  border:1px solid rgba(255,75,95,.55);
+  border-radius:10px;
+  background:rgba(105,10,27,.45);
+}
+
+.alert-card strong {
+  display:block;
+  margin-bottom:5px;
+  color:#ff7788;
+  font-size:12px;
+}
+
+.alert-card p {
+  margin:0;
+  color:#ffe1e5;
+  font-size:11px;
+  line-height:1.5;
+}
+
+footer {
+  display:flex;
+  justify-content:center;
+  gap:7px;
+  flex-wrap:wrap;
+  padding-bottom:3px;
+}
+
+.hint {
+  padding:6px 10px;
+  border:1px solid rgba(66,232,255,.25);
+  border-radius:20px;
+  background:rgba(3,15,29,.85);
+  color:#c7d9ec;
+  font-size:9px;
+}
+
+#motion-message,#certificate {
+  position:fixed;
+  inset:0;
+  z-index:20;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+  background:rgba(2,9,20,.94);
+}
+
+#certificate { display:none; }
+
+.modal {
+  width:min(100%,430px);
+  text-align:center;
+  padding:25px;
+  border:2px solid var(--cyan);
+  border-radius:20px;
+  background:linear-gradient(145deg,#0a2746,#071326);
+  box-shadow:0 0 40px rgba(66,232,255,.2);
+}
+
+.certificate-card {
+  padding:20px;
+  border:2px solid var(--yellow);
+  border-radius:12px;
+  background:rgba(255,212,92,.06);
+}
+
+.certificate-card h1 {
+  color:var(--yellow);
+  font-size:21px;
+}
+
+.certificate-card p {
+  color:#d8e9f8;
+  font-size:12px;
+  line-height:1.7;
+}
+
+@media(max-width:700px) {
+  #interface { padding:9px; }
+  .brand { font-size:13px; }
+  .brand small { font-size:7px; }
+  .top-actions button { padding:8px; font-size:9px; }
+  .activity-layout { grid-template-columns:1fr; }
+  .panel { padding:12px; }
+  .grid-panel,.mission-panel { padding:10px; }
+  .grid-wrap { max-width:370px; }
+  .view { max-height:calc(100vh - 125px); }
+  .note-card { padding:10px; }
+  .note-card p,.note-card li { font-size:10px; }
+}
+
+@media(max-width:390px) {
+  .note-grid { grid-template-columns:1fr; }
+  .brand { letter-spacing:1px; }
+  .direction-label { font-size:9px; }
+}
+</style>
 </head>
 
 <body>
 
-  <!-- 360-degree VR environment -->
-  <a-scene
-    embedded
-    vr-mode-ui="enabled: false"
-    renderer="colorManagement: true"
-    background="color: #071426">
+<!-- VR ENVIRONMENT -->
+<a-scene embedded vr-mode-ui="enabled:false"
+  renderer="colorManagement:true"
+  background="color:#071426">
 
-    <a-entity light="type: ambient; intensity: 1.2"></a-entity>
-    <a-entity light="type: point; intensity: 1.8; color: #32bfff"
-              position="0 4 0"></a-entity>
+  <a-entity light="type:ambient;intensity:1.2"></a-entity>
+  <a-entity light="type:point;intensity:1.8;color:#32bfff"
+    position="0 4 0"></a-entity>
 
-    <!-- HQ floor -->
-    <a-plane rotation="-90 0 0" width="40" height="40"
-             color="#0b1b30" material="roughness: 0.8"></a-plane>
+  <a-plane rotation="-90 0 0" width="40" height="40"
+    color="#0b1b30"></a-plane>
 
-    <!-- Floor grid -->
-    <a-entity id="floor-grid"></a-entity>
+  <a-entity id="floor-grid"></a-entity>
 
-    <!-- Four walls -->
-    <a-box position="0 3 -8" width="18" height="6" depth=".3"
-           color="#102c4c"></a-box>
-    <a-box position="0 3 8" width="18" height="6" depth=".3"
-           color="#102c4c"></a-box>
-    <a-box position="-9 3 0" width=".3" height="6" depth="16"
-           color="#102c4c"></a-box>
-    <a-box position="9 3 0" width=".3" height="6" depth="16"
-           color="#102c4c"></a-box>
+  <a-box position="0 3 -8" width="18" height="6" depth=".3"
+    color="#102c4c"></a-box>
+  <a-box position="0 3 8" width="18" height="6" depth=".3"
+    color="#102c4c"></a-box>
+  <a-box position="-9 3 0" width=".3" height="6" depth="16"
+    color="#102c4c"></a-box>
+  <a-box position="9 3 0" width=".3" height="6" depth="16"
+    color="#102c4c"></a-box>
 
-    <!-- Futuristic wall lights -->
-    <a-box position="0 5.6 -7.7" width="12" height=".08" depth=".08"
-           color="#35dfff" emissive="#35dfff" emissive-intensity="2"></a-box>
-    <a-box position="0 5.6 7.7" width="12" height=".08" depth=".08"
-           color="#35dfff" emissive="#35dfff" emissive-intensity="2"></a-box>
-    <a-box position="-8.7 5.6 0" width=".08" height=".08" depth="11"
-           color="#35dfff" emissive="#35dfff" emissive-intensity="2"></a-box>
-    <a-box position="8.7 5.6 0" width=".08" height=".08" depth="11"
-           color="#35dfff" emissive="#35dfff" emissive-intensity="2"></a-box>
+  <a-box position="0 5.6 -7.7" width="12" height=".08" depth=".08"
+    color="#35dfff" material="emissive:#35dfff;emissiveIntensity:2"></a-box>
+  <a-box position="0 5.6 7.7" width="12" height=".08" depth=".08"
+    color="#35dfff" material="emissive:#35dfff;emissiveIntensity:2"></a-box>
+  <a-box position="-8.7 5.6 0" width=".08" height=".08" depth="11"
+    color="#35dfff" material="emissive:#35dfff;emissiveIntensity:2"></a-box>
+  <a-box position="8.7 5.6 0" width=".08" height=".08" depth="11"
+    color="#35dfff" material="emissive:#35dfff;emissiveIntensity:2"></a-box>
 
-    <!-- HQ pillars -->
-    <a-box position="-7 2.5 -6" width=".5" height="5" depth=".5"
-           color="#173e61"></a-box>
-    <a-box position="7 2.5 -6" width=".5" height="5" depth=".5"
-           color="#173e61"></a-box>
-    <a-box position="-7 2.5 6" width=".5" height="5" depth=".5"
-           color="#173e61"></a-box>
-    <a-box position="7 2.5 6" width=".5" height="5" depth=".5"
-           color="#173e61"></a-box>
+  <a-box position="-7 2.5 -6" width=".5" height="5" depth=".5"
+    color="#173e61"></a-box>
+  <a-box position="7 2.5 -6" width=".5" height="5" depth=".5"
+    color="#173e61"></a-box>
+  <a-box position="-7 2.5 6" width=".5" height="5" depth=".5"
+    color="#173e61"></a-box>
+  <a-box position="7 2.5 6" width=".5" height="5" depth=".5"
+    color="#173e61"></a-box>
 
-    <!-- Decorative holographic rings -->
-    <a-torus position="0 3 -7.7" radius="2.2" radius-tubular=".025"
-             color="#35dfff" material="emissive: #35dfff; emissiveIntensity: 1.5"></a-torus>
-    <a-torus position="0 3 7.7" radius="2.2" radius-tubular=".025"
-             color="#35dfff" material="emissive: #35dfff; emissiveIntensity: 1.5"></a-torus>
+  <a-torus position="0 3 -7.7" radius="2.2" radius-tubular=".025"
+    color="#35dfff"></a-torus>
+  <a-torus position="0 3 7.7" radius="2.2" radius-tubular=".025"
+    color="#35dfff"></a-torus>
 
-    <!-- Camera with mobile gyro and touch look -->
-    <a-entity id="camera-rig" position="0 1.6 0">
-      <a-camera id="camera"
-        look-controls="magicWindowTrackingEnabled: true; touchEnabled: true; mouseEnabled: true"
-        wasd-controls-enabled="false">
-      </a-camera>
-    </a-entity>
-  </a-scene>
+  <a-entity position="0 1.6 0">
+    <a-camera id="camera"
+      look-controls="magicWindowTrackingEnabled:true;touchEnabled:true;mouseEnabled:true"
+      wasd-controls-enabled="false">
+    </a-camera>
+  </a-entity>
+</a-scene>
 
-  <!-- HTML/CSS interface -->
-  <div id="interface">
+<!-- MAIN INTERFACE -->
+<div id="interface">
 
-    <header>
-      <div class="brand">
-        MATA // VR HQ
-        <small>COORDINATE TRAINING SYSTEM</small>
-      </div>
-      <div class="top-actions">
-        <button id="motion-button">ENABLE MOTION</button>
-        <button id="reset-button">RESET</button>
-      </div>
-    </header>
-
-    <div class="direction-label" id="direction-label">FRONT // TRAINING AREA</div>
-
-    <main id="views">
-
-      <!-- FRONT -->
-      <section class="view active" id="front-view">
-        <div class="panel">
-          <div class="eyebrow">01 / ACTIVE TRAINING</div>
-          <h1>GRID NAVIGATION</h1>
-          <p class="subtitle">Select an agent object, then choose the correct grid square to complete the mission.</p>
-
-          <div class="activity-layout">
-
-            <div class="grid-panel">
-              <div class="grid-heading">
-                <strong>HOLOGRAPHIC GRID</strong>
-                <span>6 × 6 COORDINATES</span>
-              </div>
-
-              <div class="grid-wrap">
-                <div class="row-labels">
-                  <span>6</span><span>5</span><span>4</span>
-                  <span>3</span><span>2</span><span>1</span>
-                </div>
-
-                <div id="grid"></div>
-
-                <div class="column-labels">
-                  <span>A</span><span>B</span><span>C</span>
-                  <span>D</span><span>E</span><span>F</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="mission-panel">
-              <div class="eyebrow">MISSION BRIEFING</div>
-              <h2 id="mission-title">Mission 01</h2>
-
-              <div class="question" id="question">
-                Move the Communication Device to <strong>B3</strong>.
-              </div>
-
-              <p class="subtitle">Choose an object:</p>
-              <div class="piece-list" id="piece-list"></div>
-
-              <div class="status" id="status">
-                Select an object and tap a square on the grid.
-              </div>
-
-              <div class="button-row">
-                <button class="primary" id="check-button">CHECK ANSWER</button>
-                <button id="next-button" disabled>NEXT MISSION</button>
-                <button class="reset" id="restart-button">RESTART</button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      <!-- LEFT -->
-      <section class="view" id="left-view">
-        <div class="panel">
-          <div class="eyebrow">02 / LEARNING NOTES</div>
-          <h1>DIRECTION DECODER</h1>
-          <p class="subtitle">Use direction words to describe where an object is located.</p>
-
-          <div class="note-grid">
-            <div class="note-card">
-              <h3>Basic Directions</h3>
-              <p><strong>UP</strong> – move to the top.</p>
-              <p><strong>DOWN</strong> – move to the bottom.</p>
-              <p><strong>LEFT</strong> – move to the left.</p>
-              <p><strong>RIGHT</strong> – move to the right.</p>
-            </div>
-
-            <div class="note-card">
-              <h3>Compass Directions</h3>
-              <p><strong>NORTH</strong> – towards the top.</p>
-              <p><strong>EAST</strong> – towards the right.</p>
-              <p class="example">NORTH ↑</p>
-              <p class="example">EAST →</p>
-            </div>
-
-            <div class="note-card">
-              <h3>Remember!</h3>
-              <p>Look carefully at the direction before moving an object.</p>
-              <p>Count each square one at a time.</p>
-            </div>
-
-            <div class="note-card">
-              <h3>Quick Example</h3>
-              <p>From B2, move one square to the right.</p>
-              <p>New location: <span class="example">C2</span></p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- RIGHT -->
-      <section class="view" id="right-view">
-        <div class="panel">
-          <div class="eyebrow">03 / LEARNING NOTES</div>
-          <h1>LOCATION TRACKER</h1>
-          <p class="subtitle">Learn how to identify an object's location using a reference point and grid.</p>
-
-          <div class="note-grid">
-            <div class="note-card">
-              <h3>What is a Reference Point?</h3>
-              <p>A reference point is a given object or place used to help us identify another object's location.</p>
-            </div>
-
-            <div class="note-card">
-              <h3>Read the Grid</h3>
-              <p>Always identify the letter first, followed by the number.</p>
-              <p class="example">B4</p>
-              <p>Column B, Row 4.</p>
-            </div>
-
-            <div class="note-card">
-              <h3>Horizontal</h3>
-              <p>Move from left to right, or right to left.</p>
-              <p class="example">A → B → C</p>
-            </div>
-
-            <div class="note-card">
-              <h3>Vertical</h3>
-              <p>Move from bottom to top, or top to bottom.</p>
-              <p class="example">1 ↑ 2 ↑ 3</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- BACK -->
-      <section class="view" id="back-view">
-        <div class="panel warning-panel">
-          <div class="eyebrow">04 / IRIS SYSTEM ALERT</div>
-          <h1>⚠ ERROR ALERT</h1>
-          <p class="subtitle">Stop! Check these common mistakes before completing your mission.</p>
-
-          <div class="alert-card">
-            <strong>ERROR 01 — WRONG DIRECTION</strong>
-            <p>Do not confuse left with right or up with down. Check the direction before moving.</p>
-          </div>
-
-          <div class="alert-card">
-            <strong>ERROR 02 — WRONG REFERENCE POINT</strong>
-            <p>Always begin with the reference point given in the question. Do not choose another object.</p>
-          </div>
-
-          <div class="alert-card">
-            <strong>ERROR 03 — WRONG GRID READING</strong>
-            <p>Do not reverse the order. Read the letter first, then the number. For example, B4 is not 4B.</p>
-          </div>
-
-          <div class="alert-card">
-            <strong>IRIS REMINDER</strong>
-            <p>Observe carefully. Check the letter. Check the number. Then confirm your answer.</p>
-          </div>
-        </div>
-      </section>
-
-    </main>
-
-    <footer>
-      <span class="hint">FRONT: GRID MISSION</span>
-      <span class="hint">LEFT: DIRECTIONS</span>
-      <span class="hint">RIGHT: LOCATION NOTES</span>
-      <span class="hint">BACK: ERROR ALERT</span>
-    </footer>
+<header>
+  <div class="brand">
+    MATA // VR HQ
+    <small>ELITE TRAINING SYSTEM</small>
   </div>
 
-  <!-- Motion permission prompt -->
-  <div id="motion-message">
-    <div class="panel">
-      <div class="eyebrow">MATA VR SYSTEM</div>
-      <h2>WELCOME, AGENT</h2>
-      <p class="subtitle">
-        Turn your phone to explore the MATA HQ.
-        You can also drag the screen to look around.
-      </p>
-      <button class="primary" id="start-button">ENTER TRAINING HQ</button>
-      <p class="subtitle" style="font-size:10px;margin-top:12px">
-        Motion access may be requested by your browser.
-      </p>
+  <div class="top-actions">
+    <button id="motion-button">MOTION</button>
+    <button id="reset-button">RESET</button>
+  </div>
+</header>
+
+<div class="direction-label" id="direction-label">
+  FRONT // TRAINING AREA
+</div>
+
+<main id="views">
+
+<!-- FRONT VIEW -->
+<section class="view active" id="front-view">
+<div class="panel">
+
+  <div class="eyebrow">01 / ACTIVE TRAINING</div>
+  <h1>ELITE AGENT MISSION</h1>
+  <p class="subtitle">
+    Complete the coordinate challenges. Follow the instructions and help IRIS restore the MATA navigation system.
+  </p>
+
+  <div class="stats">
+    <div class="stat">
+      <span>AGENT XP</span>
+      <strong id="xp">0</strong>
+    </div>
+    <div class="stat">
+      <span>STARS</span>
+      <strong id="stars">0 / 6</strong>
+    </div>
+    <div class="stat">
+      <span>MISSIONS</span>
+      <strong id="mission-count">0 / 6</strong>
     </div>
   </div>
 
-  <script>
-    // ------------------------------------
-    // 1. BUILD THE GRID
-    // ------------------------------------
-    const letters = ["A","B","C","D","E","F"];
-    const grid = document.getElementById("grid");
+  <div class="progress-track">
+    <div id="progress-bar"></div>
+  </div>
 
-    const objects = [
-      { id: "device", name: "Communication Device", icon: "📡", start: "A1", position: "A1" },
-      { id: "drone", name: "Security Drone", icon: "🛸", start: "F2", position: "F2" },
-      { id: "scanner", name: "Holographic Scanner", icon: "🔍", start: "D6", position: "D6" },
-      { id: "core", name: "IRIS Data Core", icon: "💠", start: "B5", position: "B5" }
-    ];
+  <div class="activity-layout">
 
-    const missions = [
-      { title: "Mission 01", object: "device", target: "B3",
-        text: "Move the Communication Device to B3." },
-      { title: "Mission 02", object: "drone", target: "E4",
-        text: "Move the Security Drone to E4." },
-      { title: "Mission 03", object: "scanner", target: "C5",
-        text: "Move the Holographic Scanner to C5." },
-      { title: "Mission 04", object: "core", target: "F3",
-        text: "Move the IRIS Data Core to F3." }
-    ];
+    <div class="grid-panel">
+      <div class="grid-heading">
+        <strong>HOLOGRAPHIC GRID</strong>
+        <span>6 × 6 COORDINATES</span>
+      </div>
 
-    let currentMission = 0;
-    let selectedObject = null;
-    let completed = false;
+      <div class="grid-wrap">
+        <div class="row-labels">
+          <span>6</span><span>5</span><span>4</span>
+          <span>3</span><span>2</span><span>1</span>
+        </div>
 
-    function cellIndex(coordinate) {
-      const col = letters.indexOf(coordinate[0]);
-      const row = Number(coordinate[1]);
-      return (6 - row) * 6 + col;
-    }
+        <div id="grid"></div>
 
-    function renderGrid() {
-      grid.innerHTML = "";
+        <div class="column-labels">
+          <span>A</span><span>B</span><span>C</span>
+          <span>D</span><span>E</span><span>F</span>
+        </div>
+      </div>
+    </div>
 
-      for (let row = 6; row >= 1; row--) {
-        for (let col = 0; col < 6; col++) {
-          const coordinate = letters[col] + row;
-          const cell = document.createElement("button");
-          cell.className = "cell";
-          cell.type = "button";
-          cell.dataset.coordinate = coordinate;
-          cell.setAttribute("aria-label", coordinate);
+    <div class="mission-panel">
+      <div class="eyebrow" id="mission-type">MISSION TYPE</div>
+      <h2 id="mission-title">Mission 01</h2>
 
-          const found = objects.find(obj => obj.position === coordinate);
-          if (found) {
-            cell.innerHTML = '<span class="piece-icon">' + found.icon + '</span>';
-            cell.title = found.name;
-          }
+      <div class="question" id="question"></div>
 
-          cell.addEventListener("click", () => moveSelectedObject(coordinate));
-          grid.appendChild(cell);
-        }
+      <p class="subtitle" id="instruction">
+        Follow the mission instructions.
+      </p>
+
+      <div class="piece-list" id="piece-list"></div>
+
+      <div class="status" id="status">
+        Welcome, Agent. Select your answer.
+      </div>
+
+      <div class="button-row">
+        <button class="primary" id="check-button">CHECK ANSWER</button>
+        <button id="next-button" disabled>NEXT MISSION</button>
+        <button class="gold" id="iris-button">ASK IRIS</button>
+      </div>
+
+      <div id="iris-box">
+        <div class="iris-heading">
+          <div class="iris-avatar">✦</div>
+          IRIS ASSISTANT
+        </div>
+        <p id="iris-message">
+          Hello, Agent! I am ready to help you.
+        </p>
+      </div>
+
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- LEFT VIEW -->
+<section class="view" id="left-view">
+<div class="panel">
+  <div class="eyebrow">02 / LEARNING NOTES</div>
+  <h1>DIRECTION DECODER</h1>
+  <p class="subtitle">Use direction words to describe where an object is located.</p>
+
+  <div class="note-grid">
+    <div class="note-card">
+      <h3>Basic Directions</h3>
+      <p><strong>UP</strong> – move to the top.</p>
+      <p><strong>DOWN</strong> – move to the bottom.</p>
+      <p><strong>LEFT</strong> – move to the left.</p>
+      <p><strong>RIGHT</strong> – move to the right.</p>
+    </div>
+
+    <div class="note-card">
+      <h3>Compass Directions</h3>
+      <p><strong>NORTH</strong> – towards the top.</p>
+      <p><strong>EAST</strong> – towards the right.</p>
+      <p class="example">NORTH ↑</p>
+      <p class="example">EAST →</p>
+    </div>
+
+    <div class="note-card">
+      <h3>Remember!</h3>
+      <p>Look carefully at the direction before moving an object.</p>
+      <p>Count each square one at a time.</p>
+    </div>
+
+    <div class="note-card">
+      <h3>Quick Example</h3>
+      <p>From B2, move one square to the right.</p>
+      <p>New location: <span class="example">C2</span></p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- RIGHT VIEW -->
+<section class="view" id="right-view">
+<div class="panel">
+  <div class="eyebrow">03 / LEARNING NOTES</div>
+  <h1>LOCATION TRACKER</h1>
+  <p class="subtitle">Learn how to identify an object's location using a reference point and grid.</p>
+
+  <div class="note-grid">
+    <div class="note-card">
+      <h3>Reference Point</h3>
+      <p>A reference point is a given object or place used to help us identify another object's location.</p>
+    </div>
+
+    <div class="note-card">
+      <h3>Read the Grid</h3>
+      <p>Always identify the letter first, followed by the number.</p>
+      <p class="example">B4</p>
+      <p>Column B, Row 4.</p>
+    </div>
+
+    <div class="note-card">
+      <h3>Horizontal</h3>
+      <p>Move from left to right, or right to left.</p>
+      <p class="example">A → B → C</p>
+    </div>
+
+    <div class="note-card">
+      <h3>Vertical</h3>
+      <p>Move from bottom to top, or top to bottom.</p>
+      <p class="example">1 ↑ 2 ↑ 3</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- BACK VIEW -->
+<section class="view" id="back-view">
+<div class="panel warning-panel">
+  <div class="eyebrow">04 / IRIS SYSTEM ALERT</div>
+  <h1>⚠ ERROR ALERT</h1>
+  <p class="subtitle">Stop! Check these common mistakes before completing your mission.</p>
+
+  <div class="alert-card">
+    <strong>ERROR 01 — WRONG DIRECTION</strong>
+    <p>Do not confuse left with right or up with down. Check the direction before moving.</p>
+  </div>
+
+  <div class="alert-card">
+    <strong>ERROR 02 — WRONG REFERENCE POINT</strong>
+    <p>Always begin with the reference point given in the question. Do not choose another object.</p>
+  </div>
+
+  <div class="alert-card">
+    <strong>ERROR 03 — WRONG GRID READING</strong>
+    <p>Do not reverse the order. Read the letter first, then the number. For example, B4 is not 4B.</p>
+  </div>
+
+  <div class="alert-card">
+    <strong>IRIS REMINDER</strong>
+    <p>Observe carefully. Check the letter. Check the number. Then confirm your answer.</p>
+  </div>
+</div>
+</section>
+
+</main>
+
+<footer>
+  <span class="hint">FRONT: MISSIONS</span>
+  <span class="hint">LEFT: DIRECTIONS</span>
+  <span class="hint">RIGHT: LOCATION NOTES</span>
+  <span class="hint">BACK: ERROR ALERT</span>
+</footer>
+</div>
+
+<!-- START SCREEN -->
+<div id="motion-message">
+  <div class="modal">
+    <div class="eyebrow">MATA VR SYSTEM</div>
+    <h2>WELCOME, AGENT</h2>
+    <p class="subtitle">
+      Your coordinate training is ready. Turn your phone to explore the MATA HQ, or drag the screen to look around.
+    </p>
+    <button class="primary" id="start-button">ENTER TRAINING HQ</button>
+    <p class="subtitle" style="font-size:10px;margin-top:12px">
+      Motion access depends on your browser and device.
+    </p>
+  </div>
+</div>
+
+<!-- CERTIFICATE -->
+<div id="certificate">
+  <div class="modal">
+    <div class="certificate-card">
+      <div class="eyebrow">MATA TRAINING ACADEMY</div>
+      <h1>TOP AGENT CERTIFICATE</h1>
+      <p>This certificate is proudly awarded to</p>
+      <h2>ELITE MATA AGENT</h2>
+      <p>
+        For successfully completing all six coordinate training missions.
+      </p>
+      <div style="font-size:28px;margin:12px">⭐ ⭐ ⭐</div>
+      <p id="final-score">FINAL SCORE: 0 XP</p>
+    </div>
+    <div class="button-row" style="justify-content:center;margin-top:15px">
+      <button class="primary" id="close-certificate">RETURN TO HQ</button>
+      <button class="gold" id="print-certificate">PRINT CERTIFICATE</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ======================================
+// 1. GAME DATA
+// ======================================
+
+const letters = ["A","B","C","D","E","F"];
+
+const objects = [
+  {id:"device",name:"Communication Device",icon:"📡",position:"A1"},
+  {id:"drone",name:"Security Drone",icon:"🛸",position:"F2"},
+  {id:"scanner",name:"Holographic Scanner",icon:"🔍",position:"D6"},
+  {id:"core",name:"IRIS Data Core",icon:"💠",position:"B5"},
+  {id:"shield",name:"Energy Shield Generator",icon:"🔋",position:"E3"}
+];
+
+const missions = [
+  {
+    type:"MOVE THE OBJECT",
+    title:"Mission 01 — Device Recovery",
+    mode:"move",
+    object:"device",
+    target:"B3",
+    question:"Move the Communication Device from A1 to B3.",
+    instruction:"Select the Communication Device, then tap square B3.",
+    hint:"Find column B first. Then move up to row 3.",
+    xp:20
+  },
+  {
+    type:"IDENTIFY THE LOCATION",
+    title:"Mission 02 — Drone Scanner",
+    mode:"locate",
+    object:"drone",
+    target:"F2",
+    question:"The Security Drone is hidden on the grid. Find its location.",
+    instruction:"Tap the square where the Security Drone is located.",
+    hint:"Find column F at the bottom, then look at row 2.",
+    xp:15
+  },
+  {
+    type:"FOLLOW THE DIRECTIONS",
+    title:"Mission 03 — Scanner Navigation",
+    mode:"move",
+    object:"scanner",
+    target:"C4",
+    question:"The Holographic Scanner is at D6. Move it 1 square left and 2 squares down.",
+    instruction:"Select the Holographic Scanner, then tap its new location.",
+    hint:"Start at D6. Move left to C6. Then move down to C5 and C4.",
+    xp:20
+  },
+  {
+    type:"IDENTIFY USING DIRECTIONS",
+    title:"Mission 04 — North and East",
+    mode:"locate",
+    object:"shield",
+    target:"F5",
+    question:"Start at E3. Move 1 square north and 1 square east. Where will you arrive?",
+    instruction:"Tap the destination square on the grid.",
+    hint:"North means up. East means right. Count one square for each direction.",
+    xp:15
+  },
+  {
+    type:"REFERENCE POINT",
+    title:"Mission 05 — Reference Point",
+    mode:"reference",
+    reference:"device",
+    object:"core",
+    target:"B5",
+    question:"Use the Communication Device as your reference point. Find the location of the IRIS Data Core.",
+    instruction:"First select the Communication Device as the reference point. Then tap the IRIS Data Core's location.",
+    hint:"Do not use another object as your reference point. Select the Communication Device first.",
+    xp:20
+  },
+  {
+    type:"GRID COORDINATE CHALLENGE",
+    title:"Mission 06 — Final Navigation",
+    mode:"locate",
+    object:"scanner",
+    target:"C4",
+    question:"Find the Holographic Scanner after its navigation mission.",
+    instruction:"Identify the scanner's current location on the grid.",
+    hint:"Remember: read the letter first, followed by the number.",
+    xp:25
+  }
+];
+
+// ======================================
+// 2. GAME STATE
+// ======================================
+
+let currentMission = 0;
+let selectedObject = null;
+let selectedReference = null;
+let selectedAnswer = null;
+let completedMissions = [];
+let xp = 0;
+let completed = false;
+
+const grid = document.getElementById("grid");
+
+function getObject(id) {
+  return objects.find(obj => obj.id === id);
+}
+
+function getMission() {
+  return missions[currentMission];
+}
+
+function setStatus(message,type="") {
+  const el = document.getElementById("status");
+  el.textContent = message;
+  el.className = "status" + (type ? " " + type : "");
+}
+
+function coordinateIndex(coordinate) {
+  const col = letters.indexOf(coordinate[0]);
+  const row = Number(coordinate[1]);
+  return (6-row)*6+col;
+}
+
+// ======================================
+// 3. DRAW THE GRID
+// ======================================
+
+function renderGrid() {
+  grid.innerHTML = "";
+
+  for(let row=6;row>=1;row--) {
+    for(let col=0;col<6;col++) {
+      const coordinate = letters[col]+row;
+      const cell = document.createElement("button");
+      cell.type = "button";
+      cell.className = "cell";
+      cell.dataset.coordinate = coordinate;
+      cell.setAttribute("aria-label","Grid square "+coordinate);
+
+      const found = objects.find(obj => obj.position===coordinate);
+
+      if(found) {
+        cell.innerHTML = '<span class="piece-icon">'+found.icon+'</span>';
+        cell.title = found.name;
       }
-    }
 
-    function renderPieces() {
-      const list = document.getElementById("piece-list");
-      list.innerHTML = "";
-
-      objects.forEach(obj => {
-        const button = document.createElement("button");
-        button.className = "piece" + (selectedObject === obj.id ? " active-piece" : "");
-        button.innerHTML =
-          "<span>" + obj.icon + " " + obj.name +
-          "<br><small>Current location: " + obj.position + "</small></span>" +
-          "<span>" + (selectedObject === obj.id ? "SELECTED" : "SELECT") + "</span>";
-
-        button.addEventListener("click", () => {
-          selectedObject = obj.id;
-          renderPieces();
-          setStatus("Selected " + obj.name + ". Now tap a square on the grid.");
-        });
-
-        list.appendChild(button);
-      });
-    }
-
-    function setStatus(message, type = "") {
-      const status = document.getElementById("status");
-      status.textContent = message;
-      status.className = "status" + (type ? " " + type : "");
-    }
-
-    function moveSelectedObject(coordinate) {
-      if (!selectedObject) {
-        setStatus("Choose an object first, then tap its destination square.", "bad");
-        return;
+      if(selectedAnswer===coordinate) {
+        cell.classList.add("chosen");
       }
 
-      if (completed) {
-        setStatus("This mission is complete. Select NEXT MISSION to continue.");
-        return;
-      }
+      cell.addEventListener("click",()=>handleCellClick(coordinate));
+      grid.appendChild(cell);
+    }
+  }
+}
 
-      const object = objects.find(obj => obj.id === selectedObject);
-      object.position = coordinate;
+// ======================================
+// 4. OBJECT SELECTION
+// ======================================
 
-      renderGrid();
-      renderPieces();
+function renderObjects() {
+  const list = document.getElementById("piece-list");
+  list.innerHTML = "";
 
-      setStatus(object.name + " moved to " + coordinate + ". Press CHECK ANSWER.");
+  const mission = getMission();
+
+  objects.forEach(obj => {
+    const button = document.createElement("button");
+    button.className = "piece";
+
+    let isActive = false;
+
+    if(mission.mode==="move") {
+      isActive = selectedObject===obj.id;
+    } else if(mission.mode==="reference") {
+      isActive = selectedReference===obj.id;
     }
 
-    // ------------------------------------
-    // 2. MISSION SYSTEM
-    // ------------------------------------
-    function loadMission() {
-      const mission = missions[currentMission];
-      const object = objects.find(obj => obj.id === mission.object);
+    if(isActive) button.classList.add("active-piece");
 
-      object.position = object.start;
-      selectedObject = mission.object;
-      completed = false;
+    let actionText = "SELECT";
 
-      document.getElementById("mission-title").textContent = mission.title;
-      document.getElementById("question").textContent = mission.text;
-      document.getElementById("next-button").disabled = true;
-
-      renderGrid();
-      renderPieces();
-
-      setStatus("Move the selected object to the correct coordinate.");
+    if(mission.mode==="move" && obj.id===mission.object) {
+      actionText = selectedObject===obj.id ? "SELECTED" : "MOVE";
     }
 
-    document.getElementById("check-button").addEventListener("click", () => {
-      const mission = missions[currentMission];
-      const object = objects.find(obj => obj.id === mission.object);
+    if(mission.mode==="reference" && obj.id===mission.reference) {
+      actionText = selectedReference===obj.id ? "REFERENCE ✓" : "SET REFERENCE";
+    }
 
-      if (object.position === mission.target) {
-        completed = true;
-        setStatus("Excellent, Agent! Correct location: " + mission.target + ". Mission completed!", "good");
-        document.getElementById("next-button").disabled = false;
-      } else {
-        setStatus("Not quite! The object is at " + object.position +
-          ". Check the letter and number again.", "bad");
+    button.innerHTML =
+      "<span>"+obj.icon+" "+obj.name+
+      "<br><small>Location: "+obj.position+"</small></span>"+
+      "<span>"+actionText+"</span>";
+
+    button.addEventListener("click",()=>{
+      if(completed) return;
+
+      if(mission.mode==="move" && obj.id===mission.object) {
+        selectedObject=obj.id;
+        setStatus("Selected "+obj.name+". Now tap its destination square.");
       }
+      else if(mission.mode==="reference" && obj.id===mission.reference) {
+        selectedReference=obj.id;
+        setStatus("Reference point selected: "+obj.name+". Now find the target object.");
+      }
+      else {
+        setStatus("Select the object specified in the mission instructions.","bad");
+      }
+
+      renderObjects();
     });
 
-    document.getElementById("next-button").addEventListener("click", () => {
-      currentMission++;
+    list.appendChild(button);
+  });
+}
 
-      if (currentMission >= missions.length) {
-        document.getElementById("mission-title").textContent = "ALL MISSIONS COMPLETE";
-        document.getElementById("question").textContent =
-          "Congratulations, Agent! You have completed all coordinate missions.";
-        document.getElementById("piece-list").innerHTML = "";
-        document.getElementById("grid").innerHTML = "";
-        document.getElementById("next-button").disabled = true;
-        document.getElementById("check-button").disabled = true;
-        setStatus("MATA training successfully completed!", "good");
-        return;
-      }
+// ======================================
+// 5. CELL INTERACTION
+// ======================================
 
-      loadMission();
-    });
+function handleCellClick(coordinate) {
+  if(completed) return;
 
-    function restartGame() {
-      currentMission = 0;
-      objects.forEach(obj => obj.position = obj.start);
-      document.getElementById("check-button").disabled = false;
-      loadMission();
+  const mission = getMission();
+
+  if(mission.mode==="move") {
+    if(selectedObject!==mission.object) {
+      setStatus("Select the correct object before moving it.","bad");
+      return;
     }
 
-    document.getElementById("restart-button").addEventListener("click", restartGame);
-    document.getElementById("reset-button").addEventListener("click", restartGame);
+    const object=getObject(mission.object);
+    object.position=coordinate;
+    selectedAnswer=coordinate;
 
-    loadMission();
+    setStatus(object.name+" moved to "+coordinate+". Press CHECK ANSWER.");
+  }
 
-    // ------------------------------------
-    // 3. CHANGE VIEW BASED ON CAMERA ANGLE
-    // ------------------------------------
-    const camera = document.getElementById("camera");
-    const directionLabel = document.getElementById("direction-label");
+  else if(mission.mode==="locate") {
+    selectedAnswer=coordinate;
+    setStatus("You selected "+coordinate+". Press CHECK ANSWER.");
+  }
 
-    const views = {
-      front: document.getElementById("front-view"),
-      left: document.getElementById("left-view"),
-      right: document.getElementById("right-view"),
-      back: document.getElementById("back-view")
+  else if(mission.mode==="reference") {
+    if(selectedReference!==mission.reference) {
+      setStatus("Choose the correct reference point first.","bad");
+      return;
+    }
+
+    selectedAnswer=coordinate;
+    setStatus("You selected "+coordinate+" using the given reference point. Check your answer.");
+  }
+
+  renderGrid();
+  renderObjects();
+}
+
+// ======================================
+// 6. MISSION LOADING
+// ======================================
+
+function loadMission() {
+  const mission=getMission();
+
+  selectedObject=null;
+  selectedReference=null;
+  selectedAnswer=null;
+  completed=false;
+
+  document.getElementById("mission-type").textContent=mission.type;
+  document.getElementById("mission-title").textContent=mission.title;
+  document.getElementById("question").textContent=mission.question;
+  document.getElementById("instruction").textContent=mission.instruction;
+
+  document.getElementById("next-button").disabled=true;
+  document.getElementById("check-button").disabled=false;
+
+  document.getElementById("iris-box").classList.remove("open");
+
+  if(mission.mode==="move") {
+    selectedObject=mission.object;
+  }
+
+  renderGrid();
+  renderObjects();
+
+  setStatus("Mission ready. Follow the instructions, Agent.");
+  updateStats();
+}
+
+// ======================================
+// 7. SMART ERROR DETECTION
+// ======================================
+
+function errorFeedback(answer,mission) {
+  if(!answer) {
+    return "IRIS: You have not selected a grid square yet. Choose a square before checking.";
+  }
+
+  const target=mission.target;
+
+  if(answer[0]===target[1] && answer[1]===target[0]) {
+    return "IRIS: Check the order of your coordinate. Read the letter first, followed by the number.";
+  }
+
+  if(answer[0]===target[0] && answer[1]!==target[1]) {
+    return "IRIS: Your column is correct, but your row is different. Check the vertical position.";
+  }
+
+  if(answer[1]===target[1] && answer[0]!==target[0]) {
+    return "IRIS: Your row is correct, but your column is different. Check the horizontal position.";
+  }
+
+  if(mission.mode==="reference" && selectedReference!==mission.reference) {
+    return "IRIS: You need to select the given reference point before identifying the target.";
+  }
+
+  if(mission.mode==="move") {
+    return "IRIS: Check the direction and count each square carefully. Follow the movement instructions again.";
+  }
+
+  return "IRIS: Not quite! Check the letter and number again. Remember to use the correct reference point and direction.";
+}
+
+// ======================================
+// 8. CHECK ANSWER + XP
+// ======================================
+
+document.getElementById("check-button").addEventListener("click",()=>{
+  if(completed) return;
+
+  const mission=getMission();
+
+  let answer=selectedAnswer;
+
+  if(mission.mode==="move") {
+    answer=getObject(mission.object).position;
+  }
+
+  if(mission.mode==="reference" && selectedReference!==mission.reference) {
+    setStatus(errorFeedback(answer,mission),"bad");
+    showIris(errorFeedback(answer,mission));
+    return;
+  }
+
+  if(answer===mission.target) {
+    completed=true;
+
+    if(!completedMissions.includes(currentMission)) {
+      completedMissions.push(currentMission);
+      xp+=mission.xp;
+    }
+
+    setStatus("Excellent, Agent! Correct answer: "+mission.target+". Mission completed!","good");
+
+    document.getElementById("next-button").disabled=false;
+    document.getElementById("check-button").disabled=true;
+
+    showIris("Excellent work! You identified the correct location. You earned "+mission.xp+" XP. Ready for the next mission?");
+    updateStats();
+    renderGrid();
+  }
+  else {
+    const feedback=errorFeedback(answer,mission);
+    setStatus(feedback,"bad");
+    showIris(feedback);
+  }
+});
+
+// ======================================
+// 9. IRIS ASSISTANT
+// ======================================
+
+function showIris(message) {
+  document.getElementById("iris-box").classList.add("open");
+  document.getElementById("iris-message").textContent=message;
+}
+
+document.getElementById("iris-button").addEventListener("click",()=>{
+  const mission=getMission();
+  showIris(mission.hint);
+});
+
+document.getElementById("iris-box").addEventListener("click",()=>{});
+
+
+// ======================================
+// 10. XP, STARS AND PROGRESS
+// ======================================
+
+function updateStats() {
+  const count=completedMissions.length;
+
+  document.getElementById("xp").textContent=xp;
+  document.getElementById("stars").textContent=count+" / "+missions.length;
+  document.getElementById("mission-count").textContent=count+" / "+missions.length;
+
+  document.getElementById("progress-bar").style.width=
+    (count/missions.length*100)+"%";
+}
+
+// ======================================
+// 11. NEXT MISSION
+// ======================================
+
+document.getElementById("next-button").addEventListener("click",()=>{
+  if(!completed) return;
+
+  currentMission++;
+
+  if(currentMission>=missions.length) {
+    showCertificate();
+    return;
+  }
+
+  loadMission();
+});
+
+// ======================================
+// 12. CERTIFICATE
+// ======================================
+
+function showCertificate() {
+  document.getElementById("certificate").style.display="flex";
+  document.getElementById("final-score").textContent="FINAL SCORE: "+xp+" XP";
+}
+
+document.getElementById("close-certificate").addEventListener("click",()=>{
+  document.getElementById("certificate").style.display="none";
+});
+
+document.getElementById("print-certificate").addEventListener("click",()=>{
+  window.print();
+});
+
+// ======================================
+// 13. RESET GAME
+// ======================================
+
+function resetGame() {
+  currentMission=0;
+  xp=0;
+  completedMissions=[];
+  selectedObject=null;
+  selectedReference=null;
+  selectedAnswer=null;
+  completed=false;
+
+  objects.find(o=>o.id==="device").position="A1";
+  objects.find(o=>o.id==="drone").position="F2";
+  objects.find(o=>o.id==="scanner").position="D6";
+  objects.find(o=>o.id==="core").position="B5";
+  objects.find(o=>o.id==="shield").position="E3";
+
+  document.getElementById("certificate").style.display="none";
+  document.getElementById("check-button").disabled=false;
+
+  loadMission();
+}
+
+document.getElementById("reset-button").addEventListener("click",resetGame);
+
+// ======================================
+// 14. 360-DEGREE VIEW SWITCHING
+// ======================================
+
+const camera=document.getElementById("camera");
+const directionLabel=document.getElementById("direction-label");
+
+const views={
+  front:document.getElementById("front-view"),
+  left:document.getElementById("left-view"),
+  right:document.getElementById("right-view"),
+  back:document.getElementById("back-view")
+};
+
+let currentView="front";
+
+function normalizeAngle(degrees) {
+  return ((degrees+180)%360+360)%360-180;
+}
+
+function updateView() {
+  if(!camera || !camera.object3D) return;
+
+  const yaw=normalizeAngle(
+    THREE.MathUtils.radToDeg(camera.object3D.rotation.y)
+  );
+
+  let nextView="front";
+
+  if(yaw>=45 && yaw<135) nextView="left";
+  else if(yaw<=-45 && yaw>-135) nextView="right";
+  else if(Math.abs(yaw)>=135) nextView="back";
+
+  if(nextView!==currentView) {
+    currentView=nextView;
+
+    Object.keys(views).forEach(key=>{
+      views[key].classList.toggle("active",key===currentView);
+    });
+
+    const labels={
+      front:"FRONT // TRAINING AREA",
+      left:"LEFT // DIRECTION NOTES",
+      right:"RIGHT // LOCATION NOTES",
+      back:"BACK // IRIS ERROR ALERT"
     };
 
-    let currentView = "front";
+    directionLabel.textContent=labels[currentView];
+  }
+}
 
-    function normalizeAngle(degrees) {
-      return ((degrees + 180) % 360 + 360) % 360 - 180;
-    }
+setInterval(updateView,120);
 
-    function updateView() {
-      if (!camera || !camera.object3D) return;
+// ======================================
+// 15. START + MOTION PERMISSION
+// ======================================
 
-      const yaw = normalizeAngle(
-        THREE.MathUtils.radToDeg(camera.object3D.rotation.y)
-      );
+async function startExperience() {
+  try {
+    if(
+      typeof DeviceOrientationEvent!=="undefined" &&
+      typeof DeviceOrientationEvent.requestPermission==="function"
+    ) {
+      const permission=await DeviceOrientationEvent.requestPermission();
 
-      let nextView = "front";
-
-      if (yaw >= 45 && yaw < 135) {
-        nextView = "left";
-      } else if (yaw <= -45 && yaw > -135) {
-        nextView = "right";
-      } else if (Math.abs(yaw) >= 135) {
-        nextView = "back";
-      }
-
-      if (nextView !== currentView) {
-        currentView = nextView;
-
-        Object.keys(views).forEach(key => {
-          views[key].classList.toggle("active", key === currentView);
-        });
-
-        const labels = {
-          front: "FRONT // TRAINING AREA",
-          left: "LEFT // DIRECTION NOTES",
-          right: "RIGHT // LOCATION NOTES",
-          back: "BACK // IRIS ERROR ALERT"
-        };
-
-        directionLabel.textContent = labels[currentView];
+      if(permission!=="granted") {
+        alert("Motion permission was not granted. You can still drag the screen to look around.");
       }
     }
+  } catch(error) {
+    console.log("Motion permission unavailable:",error);
+  }
 
-    setInterval(updateView, 120);
+  document.getElementById("motion-message").style.display="none";
+}
 
-    // ------------------------------------
-    // 4. START / MOBILE MOTION PERMISSION
-    // ------------------------------------
-    async function startExperience() {
-      const overlay = document.getElementById("motion-message");
+document.getElementById("start-button").addEventListener("click",startExperience);
+document.getElementById("motion-button").addEventListener("click",startExperience);
 
-      try {
-        if (
-          typeof DeviceOrientationEvent !== "undefined" &&
-          typeof DeviceOrientationEvent.requestPermission === "function"
-        ) {
-          const permission = await DeviceOrientationEvent.requestPermission();
+// ======================================
+// 16. INITIALISE
+// ======================================
 
-          if (permission !== "granted") {
-            alert("Motion permission was not granted. You can still drag the screen to look around.");
-          }
-        }
-      } catch (error) {
-        console.log("Motion permission unavailable:", error);
-      }
+loadMission();
 
-      overlay.style.display = "none";
-    }
-
-    document.getElementById("start-button").addEventListener("click", startExperience);
-    document.getElementById("motion-button").addEventListener("click", startExperience);
-
-  </script>
+</script>
 </body>
 </html>
