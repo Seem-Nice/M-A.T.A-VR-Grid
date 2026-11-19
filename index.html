@@ -4,454 +4,538 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>MATA VR | Holographic Grid Scanner</title>
-
+<title>MATA HQ | VR Coordinate Training</title>
 <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
 
 <style>
 * { box-sizing: border-box; }
+body { margin:0; background:#020817; font-family:Arial,sans-serif; }
 
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background: #020817;
+#topbar {
+  position:fixed; z-index:10; top:10px; left:50%;
+  transform:translateX(-50%);
+  width:min(94%,600px); text-align:center;
+  color:#dffaff; background:#06182bea;
+  border:1px solid #22dfff; border-radius:12px;
+  padding:10px; box-shadow:0 0 18px #00bfff55;
 }
-
-#hud {
-  position: fixed;
-  z-index: 10;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(92%, 470px);
-  padding: 12px 18px;
-  text-align: center;
-  color: #eafaff;
-  background: rgba(3,15,38,.92);
-  border: 1px solid #20dfff;
-  border-radius: 12px;
-  box-shadow: 0 0 20px #008cff55;
-}
-
-#hud strong {
-  color: #48eaff;
-  letter-spacing: 2px;
-}
-
-#hud small {
-  display: block;
-  margin-top: 5px;
-  color: #b5d7e8;
-}
+#topbar strong { color:#48eaff; letter-spacing:2px; }
+#topbar small { display:block; margin-top:5px; font-size:11px; }
 
 #feedback {
-  position: fixed;
-  z-index: 11;
-  bottom: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(90%, 400px);
-  text-align: center;
-  padding: 12px;
-  border-radius: 12px;
-  background: rgba(3,15,38,.94);
-  color: white;
-  border: 1px solid #20dfff;
-  font-weight: bold;
+  position:fixed; z-index:11; bottom:12px; left:50%;
+  transform:translateX(-50%);
+  width:min(92%,480px); text-align:center;
+  padding:12px; border-radius:12px;
+  color:white; background:#06182bf2;
+  border:1px solid #22dfff;
+  font-weight:bold; font-size:13px;
 }
-
 </style>
 </head>
 
 <body>
 
-<div id="hud">
+<div id="topbar">
   <strong>MATA // INTELLIGENCE CENTRE</strong>
-  <small>HOLOGRAPHIC GRID SCANNER | AGENT TRAINING</small>
-  <small>Move your phone to explore the 360° environment</small>
+  <small>VIRTUAL COORDINATE TRAINING • AGENT LEVEL 01</small>
+  <small>Move your phone to explore | Tap a game piece, then tap a grid square</small>
 </div>
 
-<div id="feedback">MISSION: Find the Communication Device!</div>
+<div id="feedback">Select a game piece to begin your mission.</div>
 
 <a-scene
-  background="color: #020817"
-  renderer="antialias: true; colorManagement: true"
-  vr-mode-ui="enabled: true"
+  background="color: #030b1a"
+  renderer="antialias:true; colorManagement:true"
+  vr-mode-ui="enabled:true"
   cursor="rayOrigin: mouse"
   raycaster="objects: .clickable">
 
-  <a-assets>
-    <a-mixin id="neon"
-      material="color: #19dfff; emissive: #087dff; emissiveIntensity: 1.2">
-    </a-mixin>
-  </a-assets>
+  <!-- LIGHTING -->
+  <a-entity light="type:ambient; intensity:0.8"></a-entity>
+  <a-entity light="type:directional; intensity:1.5"
+            position="0 6 3" color="#b9eaff"></a-entity>
+  <a-entity light="type:point; intensity:2; distance:15"
+            position="0 4 -4" color="#00bfff"></a-entity>
+  <a-entity light="type:point; intensity:1.8; distance:15"
+            position="0 4 4" color="#ff3333"></a-entity>
 
-  <!-- LIGHTS -->
-  <a-entity light="type: ambient; intensity: 0.8"></a-entity>
+  <!-- MATA HQ ROOM -->
+  <a-box position="0 -0.15 0"
+    width="12" height=".3" depth="13"
+    material="color:#07182c; metalness:.7; roughness:.4">
+  </a-box>
 
-  <a-entity light="type: point; intensity: 2; distance: 18"
-    position="0 4 -3" color="#00bfff"></a-entity>
+  <a-box position="0 4.7 0"
+    width="12" height=".2" depth="13"
+    material="color:#08162a">
+  </a-box>
 
-  <a-entity light="type: point; intensity: 1.5; distance: 18"
-    position="0 3 4" color="#ffbd42"></a-entity>
+  <!-- Side walls -->
+  <a-box position="-6 2.25 0" width=".2" height="4.5" depth="13"
+    material="color:#0b2440; metalness:.5"></a-box>
+  <a-box position="6 2.25 0" width=".2" height="4.5" depth="13"
+    material="color:#0b2440; metalness:.5"></a-box>
 
-  <!-- FUTURISTIC FLOOR -->
-  <a-cylinder
-    position="0 -0.15 0"
-    radius="5.5"
-    height="0.2"
-    material="color: #081a34; metalness: .8; roughness: .3">
-  </a-cylinder>
+  <!-- Floor lighting -->
+  <a-torus position="0 .02 0" rotation="-90 0 0"
+    radius="4.5" radius-tubular=".025"
+    material="color:#00cfff; emissive:#007bff"></a-torus>
 
-  <a-torus
-    position="0 -0.03 0"
-    rotation="-90 0 0"
-    radius="4.2"
-    radius-tubular=".025"
-    material="color: #00cfff; emissive: #007bff">
-  </a-torus>
+  <a-torus position="0 .025 0" rotation="-90 0 0"
+    radius="3.8" radius-tubular=".012"
+    material="color:#ffcf55; emissive:#ff9900"></a-torus>
 
-  <a-torus
-    position="0 -0.02 0"
-    rotation="-90 0 0"
-    radius="3.6"
-    radius-tubular=".012"
-    material="color: #ffce4a; emissive: #ff9c00">
-  </a-torus>
+  <!-- Decorative HQ pillars -->
+  <a-box position="-5.5 2 -4" width=".35" height="4" depth=".35"
+    material="color:#123957; emissive:#006ca0"></a-box>
+  <a-box position="5.5 2 -4" width=".35" height="4" depth=".35"
+    material="color:#123957; emissive:#006ca0"></a-box>
+  <a-box position="-5.5 2 4" width=".35" height="4" depth=".35"
+    material="color:#123957; emissive:#006ca0"></a-box>
+  <a-box position="5.5 2 4" width=".35" height="4" depth=".35"
+    material="color:#123957; emissive:#006ca0"></a-box>
 
-  <!-- DECORATIVE LIGHTS -->
-  <a-sphere position="-3 2 -2" radius=".07"
-    material="color: #00eaff; emissive: #00aaff"></a-sphere>
+  <!-- FRONT: MAIN LEARNING AREA -->
+  <a-entity position="0 1.6 -4.8">
 
-  <a-sphere position="3 2 -2" radius=".07"
-    material="color: #ffce4a; emissive: #ff9900"></a-sphere>
-
-  <a-sphere position="-3 2 2" radius=".07"
-    material="color: #00eaff; emissive: #00aaff"></a-sphere>
-
-  <a-sphere position="3 2 2" radius=".07"
-    material="color: #ffce4a; emissive: #ff9900"></a-sphere>
-
-  <!-- FRONT: MAIN ACTIVITY -->
-  <a-entity id="front" position="0 1.6 -4">
-
-    <!-- Main panel -->
-    <a-plane width="9" height="5.7"
-      material="color: #061a38; opacity: .96">
+    <a-plane width="11" height="5.8"
+      material="color:#061a35; opacity:.97">
     </a-plane>
 
-    <a-plane width="8.85" height="5.55" position="0 0 .015"
-      material="color: #0b2548; opacity: .55">
+    <a-text value="MATA HOLOGRAPHIC TRAINING"
+      position="0 2.55 .05" align="center"
+      width="9" color="#46eaff"></a-text>
+
+    <a-text value="OPERATION: COORDINATE TRACKER"
+      position="0 2.18 .05" align="center"
+      width="7" color="#ffcf55"></a-text>
+
+    <!-- GRID SIDE -->
+    <a-plane position="-2.55 -.15 .04"
+      width="4.7" height="4.65"
+      material="color:#04142b; opacity:.95">
     </a-plane>
 
-    <a-text value="MATA // GRID SCANNER"
-      position="0 2.35 .05"
-      align="center" width="8"
-      color="#4deaff"></a-text>
+    <a-text value="HOLOGRAPHIC GRID"
+      position="-2.55 1.95 .08"
+      align="center" width="5" color="#45eaff"></a-text>
 
-    <a-text value="OPERATION 01: LOCATE THE DEVICE"
-      position="0 1.95 .05"
-      align="center" width="6"
-      color="#ffcf55"></a-text>
-
-    <!-- GRID BACKGROUND -->
-    <a-plane position="-1.55 -.15 .06"
-      width="3.8" height="3.8"
-      material="color: #04142c; opacity: .9">
-    </a-plane>
-
-    <!-- Grid group -->
-    <a-entity id="grid" position="-3.35 -1.95 .12">
-
-      <!-- Grid glow outline -->
-      <a-plane position="1.5 1.5 -.02"
-        width="3.12" height="3.12"
-        material="color: #00bfff; opacity: .12">
+    <a-entity id="grid" position="-4.3 -1.95 .12">
+      <a-plane position="1.75 1.75 -.025"
+        width="3.5" height="3.5"
+        material="color:#082747; opacity:.8">
       </a-plane>
-
-      <!-- Grid lines -->
-      <a-entity id="gridLines"></a-entity>
+      <a-entity id="cells"></a-entity>
+      <a-entity id="gridlines"></a-entity>
       <a-entity id="labels"></a-entity>
-      <a-entity id="objects"></a-entity>
-
+      <a-entity id="pieces"></a-entity>
     </a-entity>
 
-    <!-- Mission info -->
-    <a-entity position="1.15 .55 .12">
+    <!-- QUESTION SIDE -->
+    <a-plane position="2.45 -.05 .04"
+      width="4.65" height="4.65"
+      material="color:#0a2544; opacity:.98">
+    </a-plane>
 
-      <a-text value="MISSION BRIEFING"
-        position="0 1.05 0"
-        width="3.5" color="#4deaff"></a-text>
+    <a-text value="MISSION BRIEFING"
+      position=".35 1.75 .09"
+      width="4" color="#48eaff"></a-text>
 
-      <a-text value="Find the Communication Device.\n\nLook carefully at the grid.\n\nSelect the correct coordinate."
-        position="0 .55 0"
-        width="3.5"
-        color="white"
-        line-height="55"></a-text>
+    <a-text id="missionNumber"
+      value="MISSION 01 / 03"
+      position=".35 1.35 .09"
+      width="4" color="#ffcf55"></a-text>
 
-      <a-text value="SELECT YOUR ANSWER"
-        position="0 -.75 0"
-        width="3.5"
-        color="#ffcf55"></a-text>
+    <a-text id="question"
+      value="Move the Communication Device to B3."
+      position=".35 .8 .09"
+      width="4.5" color="white" wrap-count="35"></a-text>
 
-      <a-entity id="answers"></a-entity>
+    <a-text value="HOW TO PLAY"
+      position=".35 -.05 .09"
+      width="4" color="#48eaff"></a-text>
 
-      <a-text value="Tap an answer to scan!"
-        position="0 -1.65 0"
-        width="3.5"
-        color="#9bd9ee"></a-text>
+    <a-text value="1. Select a game piece.\n2. Select its destination square.\n3. Press CHECK ANSWER."
+      position=".35 -.42 .09"
+      width="4.3" color="#d9efff" line-height="55"></a-text>
 
+    <a-text id="selectedInfo"
+      value="Selected: None"
+      position=".35 -1.3 .09"
+      width="4" color="#ffcf55"></a-text>
+
+    <!-- BUTTONS -->
+    <a-entity id="checkButton" class="clickable"
+      position="1.05 -1.85 .12">
+      <a-plane width="1.65" height=".48"
+        color="#087c58"></a-plane>
+      <a-text value="CHECK ANSWER"
+        position="0 0 .025" align="center"
+        width="2.6" color="white"></a-text>
     </a-entity>
 
-    <a-text value="MATA TRAINING SYSTEM // AGENT LEVEL 01"
-      position="0 -2.55 .05"
-      align="center"
-      width="6"
-      color="#64b8d9"></a-text>
+    <a-entity id="nextButton" class="clickable"
+      position="2.85 -1.85 .12">
+      <a-plane width="1.4" height=".48"
+        color="#075b91"></a-plane>
+      <a-text value="NEXT MISSION"
+        position="0 0 .025" align="center"
+        width="2.3" color="white"></a-text>
+    </a-entity>
+
+    <a-entity id="resetButton" class="clickable"
+      position="1.95 -2.42 .12">
+      <a-plane width="1.4" height=".4"
+        color="#713b19"></a-plane>
+      <a-text value="RESET"
+        position="0 0 .025" align="center"
+        width="2" color="white"></a-text>
+    </a-entity>
 
   </a-entity>
 
-  <!-- BACK: IRIS ALERT -->
-  <a-entity position="0 1.6 4" rotation="0 180 0">
+  <!-- LEFT SIDE: DIRECTION NOTES -->
+  <a-entity position="-5.88 2.1 0" rotation="0 90 0">
+    <a-plane width="4.8" height="3.8"
+      material="color:#082b49; opacity:.97"></a-plane>
 
-    <a-plane width="9" height="5.7"
-      material="color: #15162d; opacity: .97">
-    </a-plane>
+    <a-text value="AGENT NOTES // DIRECTIONS"
+      position="0 1.35 .04" align="center"
+      width="4.5" color="#43eaff"></a-text>
 
-    <a-plane width="8.85" height="5.55" position="0 0 .015"
-      material="color: #301b30; opacity: .4">
-    </a-plane>
-
-    <a-text value="IRIS // ERROR ALERT"
-      position="0 2.3 .05"
-      align="center"
-      width="8"
-      color="#ffca55"></a-text>
-
-    <a-text value="AGENT WARNING SYSTEM"
-      position="0 1.85 .05"
-      align="center"
-      width="6"
-      color="#f8a5a5"></a-text>
-
-    <!-- Error card 1 -->
-    <a-plane position="0 1.05 .06"
-      width="7.4" height=".8"
-      material="color: #49202d">
-    </a-plane>
-
-    <a-text value="01 // DIRECTION CONFUSION"
-      position="-3.45 1.25 .1"
-      width="6"
-      color="#ffcf55"></a-text>
-
-    <a-text value="Remember LEFT, RIGHT, UP and DOWN."
-      position="-3.45 .88 .1"
-      width="6"
-      color="white"></a-text>
-
-    <!-- Error card 2 -->
-    <a-plane position="0 0 .06"
-      width="7.4" height=".8"
-      material="color: #49202d">
-    </a-plane>
-
-    <a-text value="02 // WRONG REFERENCE POINT"
-      position="-3.45 .2 .1"
-      width="6"
-      color="#ffcf55"></a-text>
-
-    <a-text value="Always start from the given reference point."
-      position="-3.45 -.17 .1"
-      width="6"
-      color="white"></a-text>
-
-    <!-- Error card 3 -->
-    <a-plane position="0 -1.05 .06"
-      width="7.4" height=".8"
-      material="color: #49202d">
-    </a-plane>
-
-    <a-text value="03 // COORDINATE READING ERROR"
-      position="-3.45 -.85 .1"
-      width="6"
-      color="#ffcf55"></a-text>
-
-    <a-text value="Read the LETTER first, then the NUMBER.\nExample: B3, not 3B."
-      position="-3.45 -1.25 .1"
-      width="6"
-      color="white"></a-text>
-
-    <a-text value="IRIS: STAY ALERT, AGENT!"
-      position="0 -2.25 .1"
-      align="center"
-      width="6"
-      color="#ffcf55"></a-text>
-
+    <a-text value="UP   ↑   Move to the top\n\nDOWN   ↓   Move to the bottom\n\nLEFT   ←   Move to the left\n\nRIGHT   →   Move to the right\n\nNORTH   ↑   Direction to the top\n\nEAST   →   Direction to the right"
+      position="-2 -0.15 .05"
+      width="4.1" color="white" line-height="52"></a-text>
   </a-entity>
 
-  <!-- SIDE DECORATIVE PANELS -->
-  <a-entity position="-4.8 1.6 0" rotation="0 90 0">
-    <a-plane width="3" height="3"
-      material="color: #071b36; opacity: .85"></a-plane>
-    <a-text value="MATA HQ\n\nAGENT TRAINING\n\nCOORDINATE SYSTEM"
-      position="0 .6 .03"
-      align="center" width="3"
-      color="#48eaff"></a-text>
+  <!-- RIGHT SIDE: COORDINATE NOTES -->
+  <a-entity position="5.88 2.1 0" rotation="0 -90 0">
+    <a-plane width="4.8" height="3.8"
+      material="color:#082b49; opacity:.97"></a-plane>
+
+    <a-text value="AGENT NOTES // COORDINATES"
+      position="0 1.35 .04" align="center"
+      width="4.5" color="#43eaff"></a-text>
+
+    <a-text value="REFERENCE POINT\nThe starting location used to describe another position.\n\nREADING A GRID\nRead the LETTER first, then the NUMBER.\n\nExample: B3\n\nHorizontal = across\nVertical = up and down"
+      position="-2 .55 .05"
+      width="4.1" color="white" line-height="48"></a-text>
   </a-entity>
 
-  <a-entity position="4.8 1.6 0" rotation="0 -90 0">
-    <a-plane width="3" height="3"
-      material="color: #071b36; opacity: .85"></a-plane>
-    <a-text value="SYSTEM STATUS\n\nONLINE\n\nIRIS ACTIVE"
-      position="0 .6 .03"
-      align="center" width="3"
-      color="#ffcf55"></a-text>
+  <!-- BACK: RED IRIS ERROR ALERT -->
+  <a-entity position="0 2.1 6.35" rotation="0 180 0">
+
+    <a-plane width="10" height="4.2"
+      material="color:#3b080e; emissive:#400000; emissiveIntensity:.3">
+    </a-plane>
+
+    <a-plane width="9.75" height="3.95" position="0 0 .025"
+      material="color:#5a1018; opacity:.85">
+    </a-plane>
+
+    <a-text value="!! IRIS // ERROR ALERT !!"
+      position="0 1.55 .08" align="center"
+      width="8" color="#ff3535"></a-text>
+
+    <a-text value="WARNING: AVOID THESE COMMON MISTAKES"
+      position="0 1.12 .08" align="center"
+      width="7" color="#ffb4b4"></a-text>
+
+    <a-plane position="0 .55 .07" width="8.6" height=".62"
+      material="color:#8a151d"></a-plane>
+    <a-text value="ERROR 01: DIRECTION CONFUSION\nDo not confuse LEFT, RIGHT, UP and DOWN."
+      position="-4 .55 .12" width="7.8"
+      color="white" line-height="50"></a-text>
+
+    <a-plane position="0 -.25 .07" width="8.6" height=".62"
+      material="color:#8a151d"></a-plane>
+    <a-text value="ERROR 02: WRONG REFERENCE POINT\nAlways begin at the reference point given."
+      position="-4 -.25 .12" width="7.8"
+      color="white" line-height="50"></a-text>
+
+    <a-plane position="0 -1.05 .07" width="8.6" height=".62"
+      material="color:#8a151d"></a-plane>
+    <a-text value="ERROR 03: WRONG COORDINATE ORDER\nRead the LETTER first, then the NUMBER. Example: B3, not 3B."
+      position="-4 -1.05 .12" width="7.8"
+      color="white" line-height="50"></a-text>
+
+    <a-text value="IRIS: CHECK BEFORE YOU ANSWER!"
+      position="0 -1.75 .08" align="center"
+      width="7" color="#ff7777"></a-text>
   </a-entity>
 
   <!-- CAMERA -->
   <a-entity position="0 1.6 0">
-    <a-camera
-      look-controls="magicWindowTrackingEnabled: true"
+    <a-camera look-controls="magicWindowTrackingEnabled:true"
       wasd-controls-enabled="false">
-
-      <a-cursor
-        color="#ffdc65"
-        fuse="false"
-        raycaster="objects: .clickable">
-      </a-cursor>
-
+      <a-cursor color="#ffdf70" fuse="false"
+        raycaster="objects:.clickable"></a-cursor>
     </a-camera>
   </a-entity>
 
 </a-scene>
 
 <script>
-const gridLines = document.querySelector("#gridLines");
+const CELL = 0.583333;
+const LETTERS = ["A","B","C","D","E","F"];
+
+const cells = document.querySelector("#cells");
+const lines = document.querySelector("#gridlines");
 const labels = document.querySelector("#labels");
-const objects = document.querySelector("#objects");
-const answers = document.querySelector("#answers");
+const piecesLayer = document.querySelector("#pieces");
 const feedback = document.querySelector("#feedback");
+const selectedInfo = document.querySelector("#selectedInfo");
+const questionText = document.querySelector("#question");
+const missionNumber = document.querySelector("#missionNumber");
 
-const letters = ["A","B","C","D","E","F"];
+let selectedPiece = null;
+let missionIndex = 0;
 
-// Draw grid
-for(let i=0; i<=6; i++){
-
-  const h = document.createElement("a-box");
-  h.setAttribute("position", `1.5 ${i*.5} 0`);
-  h.setAttribute("width","3");
-  h.setAttribute("height",".025");
-  h.setAttribute("depth",".025");
-  h.setAttribute("color","#22dfff");
-  gridLines.appendChild(h);
-
-  const v = document.createElement("a-box");
-  v.setAttribute("position",`${i*.5} 1.5 0`);
-  v.setAttribute("width",".025");
-  v.setAttribute("height","3");
-  v.setAttribute("depth",".025");
-  v.setAttribute("color","#22dfff");
-  gridLines.appendChild(v);
-}
-
-// Grid labels
-letters.forEach((letter,i)=>{
-  const t = document.createElement("a-text");
-  t.setAttribute("value",letter);
-  t.setAttribute("position",`${i*.5+.25} -.23 .06`);
-  t.setAttribute("align","center");
-  t.setAttribute("width","2");
-  t.setAttribute("color","#ffdc65");
-  labels.appendChild(t);
-});
-
-for(let n=1;n<=6;n++){
-  const t = document.createElement("a-text");
-  t.setAttribute("value",n);
-  t.setAttribute("position",`-.25 ${n*.5-.25} .06`);
-  t.setAttribute("align","center");
-  t.setAttribute("width","2");
-  t.setAttribute("color","#ffdc65");
-  labels.appendChild(t);
-}
-
-// Objects
-const items = [
-  {name:"Communication Device",col:"B",row:3,color:"#ffcf55"},
-  {name:"Security Drone",col:"E",row:5,color:"#ff6688"},
-  {name:"IRIS Scanner",col:"D",row:2,color:"#65ffbf"}
+const missions = [
+  {
+    name:"Communication Device",
+    id:"device",
+    target:"B3",
+    question:"Move the Communication Device to B3."
+  },
+  {
+    name:"Security Drone",
+    id:"drone",
+    target:"E4",
+    question:"Move the Security Drone to E4."
+  },
+  {
+    name:"IRIS Scanner",
+    id:"scanner",
+    target:"C5",
+    question:"Move the IRIS Scanner to C5."
+  }
 ];
 
-items.forEach(item=>{
+const initialPieces = [
+  {id:"device", name:"Communication Device", col:"A", row:1, color:"#ffd34e"},
+  {id:"drone", name:"Security Drone", col:"F", row:2, color:"#ff6588"},
+  {id:"scanner", name:"IRIS Scanner", col:"D", row:6, color:"#52edc0"}
+];
 
-  const x=letters.indexOf(item.col)*.5+.25;
-  const y=item.row*.5-.25;
+const positions = {};
+initialPieces.forEach(p => positions[p.id] = {col:p.col,row:p.row});
 
-  const ring=document.createElement("a-torus");
-  ring.setAttribute("position",`${x} ${y} .08`);
-  ring.setAttribute("radius",".19");
-  ring.setAttribute("radius-tubular",".018");
-  ring.setAttribute("color",item.color);
-  objects.appendChild(ring);
+function coordinate(col,row) {
+  return LETTERS.indexOf(col) + "," + row;
+}
 
-  const sphere=document.createElement("a-sphere");
-  sphere.setAttribute("position",`${x} ${y} .12`);
-  sphere.setAttribute("radius",".105");
-  sphere.setAttribute("color",item.color);
-  sphere.setAttribute("material",
-    `emissive: ${item.color}; emissiveIntensity: .8`);
-  sphere.setAttribute("class","clickable");
+function cellPosition(col,row) {
+  return {
+    x: LETTERS.indexOf(col) * CELL + CELL/2,
+    y: (row-1) * CELL + CELL/2
+  };
+}
 
-  sphere.addEventListener("click",()=>{
-    feedback.textContent =
-      item.name+" is located at "+item.col+item.row+".";
-  });
+// Build clickable grid squares
+for(let row=1; row<=6; row++) {
+  for(let col=0; col<6; col++) {
+    const letter = LETTERS[col];
+    const square = document.createElement("a-plane");
+    const pos = cellPosition(letter,row);
 
-  objects.appendChild(sphere);
+    square.setAttribute("position",
+      `${pos.x} ${pos.y} .025`);
+    square.setAttribute("width", CELL-.025);
+    square.setAttribute("height", CELL-.025);
+    square.setAttribute("material",
+      "color:#0a3557; opacity:.35; transparent:true; side:double");
+    square.setAttribute("class","clickable");
+
+    square.addEventListener("click",()=>{
+      if(!selectedPiece) {
+        feedback.textContent = "Select a game piece first!";
+        return;
+      }
+      movePiece(selectedPiece,letter,row);
+    });
+
+    cells.appendChild(square);
+  }
+}
+
+// Grid lines
+for(let i=0;i<=6;i++) {
+  const h = document.createElement("a-box");
+  h.setAttribute("position",`1.75 ${i*CELL} .05`);
+  h.setAttribute("width","3.5");
+  h.setAttribute("height",".018");
+  h.setAttribute("depth",".025");
+  h.setAttribute("color","#36dfff");
+  lines.appendChild(h);
+
+  const v = document.createElement("a-box");
+  v.setAttribute("position",`${i*CELL} 1.75 .05`);
+  v.setAttribute("width",".018");
+  v.setAttribute("height","3.5");
+  v.setAttribute("depth",".025");
+  v.setAttribute("color","#36dfff");
+  lines.appendChild(v);
+}
+
+// Letter labels at bottom
+LETTERS.forEach((letter,i)=>{
+  const t = document.createElement("a-text");
+  t.setAttribute("value",letter);
+  t.setAttribute("position",`${i*CELL+CELL/2} -.2 .09`);
+  t.setAttribute("align","center");
+  t.setAttribute("width","2");
+  t.setAttribute("color","#ffdf70");
+  labels.appendChild(t);
 });
 
-// Multiple choice answers
-const choices=["B3","E5","D2"];
+// Number labels at left, bottom to top
+for(let row=1;row<=6;row++){
+  const t = document.createElement("a-text");
+  t.setAttribute("value",row);
+  t.setAttribute("position",`-.2 ${(row-1)*CELL+CELL/2} .09`);
+  t.setAttribute("align","center");
+  t.setAttribute("width","2");
+  t.setAttribute("color","#ffdf70");
+  labels.appendChild(t);
+}
 
-choices.forEach(choice=>{
+// Create game pieces
+function createPieces() {
+  piecesLayer.innerHTML = "";
 
-  const group=document.createElement("a-entity");
+  initialPieces.forEach(piece=>{
+    const entity = document.createElement("a-entity");
+    entity.setAttribute("id","piece-"+piece.id);
+    entity.setAttribute("class","clickable");
 
-  const panel=document.createElement("a-plane");
-  panel.setAttribute("width","1.05");
-  panel.setAttribute("height",".48");
-  panel.setAttribute("material",
-    "color: #075078; opacity: .95");
-  panel.setAttribute("class","clickable");
+    const sphere = document.createElement("a-sphere");
+    sphere.setAttribute("radius",".17");
+    sphere.setAttribute("color",piece.color);
+    sphere.setAttribute("material",
+      `emissive:${piece.color}; emissiveIntensity:.5`);
 
-  const x=choices.indexOf(choice)*1.12-.57;
-  group.setAttribute("position",`${x} -.98 .08`);
+    const ring = document.createElement("a-torus");
+    ring.setAttribute("radius",".22");
+    ring.setAttribute("radius-tubular",".018");
+    ring.setAttribute("color",piece.color);
+    ring.setAttribute("rotation","0 0 0");
 
-  const text=document.createElement("a-text");
-  text.setAttribute("value",choice);
-  text.setAttribute("align","center");
-  text.setAttribute("position","0 0 .025");
-  text.setAttribute("width","2.5");
-  text.setAttribute("color","white");
+    const label = document.createElement("a-text");
+    label.setAttribute("value",piece.id.toUpperCase());
+    label.setAttribute("position","0 .29 .02");
+    label.setAttribute("align","center");
+    label.setAttribute("width","2");
+    label.setAttribute("color","white");
 
-  group.appendChild(panel);
-  group.appendChild(text);
+    entity.appendChild(ring);
+    entity.appendChild(sphere);
+    entity.appendChild(label);
 
-  panel.addEventListener("click",()=>{
-    if(choice==="B3"){
-      feedback.textContent=
-        "CORRECT! The Communication Device is at B3.";
-    }else{
-      feedback.textContent=
-        "TRY AGAIN! Check the highlighted object on the grid.";
+    entity.addEventListener("click",()=>{
+      selectPiece(piece.id);
+    });
+
+    piecesLayer.appendChild(entity);
+    placeEntity(piece.id);
+  });
+}
+
+function placeEntity(id) {
+  const p = positions[id];
+  const pos = cellPosition(p.col,p.row);
+  const entity = document.querySelector("#piece-"+id);
+
+  if(entity) {
+    entity.setAttribute("position",
+      `${pos.x} ${pos.y} .16`);
+  }
+}
+
+function selectPiece(id) {
+  selectedPiece = id;
+  const p = initialPieces.find(x=>x.id===id);
+  const pos = positions[id];
+
+  selectedInfo.setAttribute("value",
+    "Selected: "+p.name+" ("+pos.col+pos.row+")");
+
+  feedback.textContent =
+    p.name+" selected. Now tap a destination square.";
+
+  initialPieces.forEach(piece=>{
+    const e = document.querySelector("#piece-"+piece.id);
+    if(e) {
+      const ring = e.querySelector("a-torus");
+      ring.setAttribute("radius",
+        piece.id===id ? ".29" : ".22");
+      ring.setAttribute("color",
+        piece.id===id ? "#ffffff" : piece.color);
     }
   });
+}
 
-  answers.appendChild(group);
-});
+function movePiece(id,col,row) {
+  positions[id] = {col,row};
+  placeEntity(id);
 
+  const p = initialPieces.find(x=>x.id===id);
+  selectedInfo.setAttribute("value",
+    "Selected: "+p.name+" ("+col+row+")");
+
+  feedback.textContent =
+    p.name+" moved to "+col+row+". Press CHECK ANSWER.";
+}
+
+function checkAnswer() {
+  const mission = missions[missionIndex];
+  const pos = positions[mission.id];
+  const current = pos.col+pos.row;
+
+  if(current===mission.target) {
+    feedback.textContent =
+      "MISSION COMPLETE! Correct location: "+mission.target+".";
+  } else {
+    feedback.textContent =
+      "NOT YET! "+mission.name+" is at "+current+
+      ". Try moving it to "+mission.target+".";
+  }
+}
+
+function nextMission() {
+  missionIndex = (missionIndex+1)%missions.length;
+  updateMission();
+}
+
+function updateMission() {
+  const mission = missions[missionIndex];
+  missionNumber.setAttribute("value",
+    "MISSION "+String(missionIndex+1).padStart(2,"0")+" / 03");
+  questionText.setAttribute("value",mission.question);
+  selectedPiece = null;
+  selectedInfo.setAttribute("value","Selected: None");
+  feedback.textContent = "New mission! Select a game piece.";
+}
+
+function resetGame() {
+  initialPieces.forEach(p=>{
+    positions[p.id] = {col:p.col,row:p.row};
+  });
+  selectedPiece = null;
+  missionIndex = 0;
+  createPieces();
+  updateMission();
+  feedback.textContent = "All game pieces returned to their starting positions.";
+}
+
+// Wire buttons
+document.querySelector("#checkButton").addEventListener("click",checkAnswer);
+document.querySelector("#nextButton").addEventListener("click",nextMission);
+document.querySelector("#resetButton").addEventListener("click",resetGame);
+
+createPieces();
+updateMission();
 </script>
 
 </body>
